@@ -76,13 +76,17 @@ public class SoundPoolCompat {
      * @return a sample ID. This value can be used to play or unload the sound.
      */
     public final int load(final String path) {
+        return load(path, mBufferSize);
+    }
+
+    public final int load(final String path, final int bufferSize) {
         int id = -1;
         if (mSamplePool.size() == mMaxSamples) return id;
 
         try {
             final File file = new File(path);
             final ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-            if (pfd != null) id = _load(pfd, null, 0, file.length());
+            if (pfd != null) id = _load(pfd, null, 0, file.length(), bufferSize);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,24 +101,28 @@ public class SoundPoolCompat {
      * @return a sample ID. This value can be used to play or unload the sound.
      */
     public final int load(final Context context, final int resId) {
+        return load(context, resId, mBufferSize);
+    }
+
+    public final int load(final Context context, final int resId, final int bufferSize) {
         int id = -1;
         if (mSamplePool.size() == mMaxSamples) return id;
 
         final AssetFileDescriptor afd = context.getResources().openRawResourceFd(resId);
-        if (afd != null) id = _load(null, afd, afd.getStartOffset(), afd.getLength());
+        if (afd != null) id = _load(null, afd, afd.getStartOffset(), afd.getLength(), bufferSize);
         return id;
     }
 
     private int _load(final ParcelFileDescriptor parcelDescr, final AssetFileDescriptor assetDescr,
-                      final long offset, final long size) {
+                      final long fileOffset, final long fileSize, final int bufferSize) {
         final int id = mNextId;
         mNextId++;
 
-        final SoundSample sample = new SoundSample(this);
+        final SoundSample sample = new SoundSample(bufferSize);
         mSamplePool.append(id, sample);
 
         synchronized (mLoadQueueLock) {
-            mToLoadQueue.add(new SoundSampleMetadata(id, parcelDescr, assetDescr, offset, size));
+            mToLoadQueue.add(new SoundSampleMetadata(id, parcelDescr, assetDescr, fileOffset, fileSize));
         }
 
         mLoadHandlerThread.post(mLoadSoundRun);
@@ -137,7 +145,6 @@ public class SoundPoolCompat {
         if (sample == null) {
             return false;
         } else {
-            // todo what if it is loaded?
             sample.dispose();
             mSamplePool.remove(sampleId);
             return true;

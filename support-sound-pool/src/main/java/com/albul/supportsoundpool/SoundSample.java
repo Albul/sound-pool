@@ -20,7 +20,7 @@ import static java.lang.Thread.MAX_PRIORITY;
 
 public class SoundSample {
 
-    private final SoundPoolCompat mSoundPool;
+    private final int mBufferSize;
     private AudioTrack mAudioTrack;
 
     private MediaExtractor mExtractor;
@@ -36,8 +36,8 @@ public class SoundSample {
     private boolean mIsStatic = true;
     private int mLoopCount;
 
-    public SoundSample(final SoundPoolCompat soundPool) {
-        mSoundPool = soundPool;
+    public SoundSample(final int bufferSize) {
+        mBufferSize = bufferSize;
     }
 
     public boolean load(final FileDescriptor fd, final long fileOffset, final long fileSize) {
@@ -135,7 +135,7 @@ public class SoundSample {
                         final int prevSize = mLoadedAudio.length;
                         mLoadedAudio = Arrays.copyOf(mLoadedAudio, mLoadedAudio.length + bufInfo.size);
                         outputBuffer.get(mLoadedAudio, prevSize, bufInfo.size);
-                        if (mLoadedAudio.length > mSoundPool.mBufferSize) {
+                        if (mLoadedAudio.length > mBufferSize) {
                             sawOutputEOS = true;
                             mIsStatic = false;
                         }
