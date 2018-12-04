@@ -1,0 +1,130 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/load_bg_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load BG 1"/>
+
+        <SeekBar
+            android:id="@+id/bg1_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:paddingVertical="3dp"/>
+
+        <Button
+            android:id="@+id/load_bg_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load BG 2"/>
+
+        <SeekBar
+            android:id="@+id/bg2_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
+
+        <Button
+            android:id="@+id/load_bg_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load BG 3"/>
+
+        <SeekBar
+            android:id="@+id/bg3_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
+
+
+        <Button
+            android:id="@+id/phase_transition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load Phase Transition"/>
+
+        <SeekBar
+            android:id="@+id/phase_transition_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
+
+        <Button
+            android:id="@+id/metronome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load Metronome"/>
+
+        <SeekBar
+            android:id="@+id/metronome_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            android:paddingVertical="3dp"/>
+
+        <Button
+            android:id="@+id/play"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Play"/>
+
+        <Button
+            android:id="@+id/resume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Resume"/>
+
+        <Button
+            android:id="@+id/pause"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pause"/>
+
+        <Button
+            android:id="@+id/stop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop"/>
+
+        <Button
+            android:id="@+id/unload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unload"/>
+    </LinearLayout>
+
+</RelativeLayout>
