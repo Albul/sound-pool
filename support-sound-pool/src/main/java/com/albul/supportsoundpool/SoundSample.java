@@ -18,7 +18,7 @@ import static android.media.AudioTrack.PLAYSTATE_PLAYING;
 import static android.media.AudioTrack.PLAYSTATE_STOPPED;
 import static java.lang.Thread.MAX_PRIORITY;
 
-public class SoundChannelCompat {
+public class SoundSample {
 
     private final SoundPoolCompat mSoundPool;
     private AudioTrack mAudioTrack;
@@ -36,7 +36,7 @@ public class SoundChannelCompat {
     private boolean mIsStatic = true;
     private int mLoopCount;
 
-    public SoundChannelCompat(final SoundPoolCompat soundPool) {
+    public SoundSample(final SoundPoolCompat soundPool) {
         mSoundPool = soundPool;
     }
 
@@ -74,7 +74,7 @@ public class SoundChannelCompat {
             final int minSize = AudioTrack.getMinBufferSize(sampleRate, channelConfiguration, AudioFormat.ENCODING_PCM_16BIT);
 
             mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, channelConfiguration,
-                                         AudioFormat.ENCODING_PCM_16BIT, minSize, AudioTrack.MODE_STREAM);
+                                         AudioFormat.ENCODING_PCM_16BIT, minSize * 2 /*todo*/, AudioTrack.MODE_STREAM);
             mExtractor.selectTrack(0);
 
             loadNextSamples(true);
@@ -85,8 +85,6 @@ public class SoundChannelCompat {
         Log.d("mIsStatic", mIsStatic +"");
         return true;
     }
-
-    long time;
 
     private void loadNextSamples(final boolean isFromStart) {
         synchronized (mThreadLock) {

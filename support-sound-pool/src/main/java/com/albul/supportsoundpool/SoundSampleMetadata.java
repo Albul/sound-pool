@@ -6,18 +6,18 @@ import android.os.ParcelFileDescriptor;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-public class SoundChannelMetadata {
+public class SoundSampleMetadata {
 
-    public final int mChannelId;
+    public final int mSampleId;
     public final ParcelFileDescriptor mParcelDescr;
     public final AssetFileDescriptor mAssetDescr;
     public final long mFileOffset;
     public final long mFileSize;
 
-    public SoundChannelMetadata(final int channelId,
-                                final ParcelFileDescriptor parcelDescr, final AssetFileDescriptor assetDescr,
-                                final long fileOffset, final long fileSize) {
-        mChannelId = channelId;
+    public SoundSampleMetadata(final int sampleId,
+                               final ParcelFileDescriptor parcelDescr, final AssetFileDescriptor assetDescr,
+                               final long fileOffset, final long fileSize) {
+        mSampleId = sampleId;
         mParcelDescr = parcelDescr;
         mAssetDescr = assetDescr;
         mFileOffset = fileOffset;

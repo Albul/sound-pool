@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -71,6 +72,18 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            mSoundPoolCompat = new SoundPoolCompat(5, 100_000);
+            mSoundPoolCompat.setOnLoadCompleteListener(new SoundPoolCompat.OnLoadCompleteListener() {
+                @Override
+                public void onLoadComplete(SoundPoolCompat soundPool, int sampleId, int status) {
+                    Log.d("load completed soundID", sampleId + ", " + status);
+                }
+            });
+            mSoundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+            mSoundID = mSoundPool.load(getContext(), R.raw.sec_tick_bird_goldfinch, 1);
+
+
+
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             // set listeners on buttons
             rootView.findViewById(R.id.load_bg_1).setOnClickListener(this);
@@ -119,13 +132,6 @@ public class MainActivity extends AppCompatActivity {
             rootView.findViewById(R.id.auto_resume).setOnClickListener(this);
             mShort3Loop = rootView.findViewById(R.id.short_sound_3_loop);
             mShort3Loop.setOnClickListener(this);
-
-            mSoundPoolCompat = new SoundPoolCompat(5, 100_000);
-
-
-            mSoundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
-            mSoundID = mSoundPool.load(getContext(), R.raw.sec_tick_bird_goldfinch, 1);
-
 
             mBg1VolumeBar = rootView.findViewById(R.id.bg1_volume);
             mBg1VolumeBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
