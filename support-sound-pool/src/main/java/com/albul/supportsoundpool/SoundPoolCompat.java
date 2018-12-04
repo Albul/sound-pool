@@ -19,7 +19,6 @@ public class SoundPoolCompat {
     private static final int SOUND_LOADED = 1;
 
     private final SparseArray<SoundSample> mSamplePool;
-
     private EventHandler mEventHandler;
     private final Handler mLoadHandlerThread;
     private final LoadSoundRun mLoadSoundRun;
@@ -30,13 +29,16 @@ public class SoundPoolCompat {
     /**
      * In bytes, inclusive
      */
-    final int mBufferSize;
+    private final int mBufferSize;
+    private final int mMaxSamples;
+
     private int mNextId;
 
-    public SoundPoolCompat(final int maxStreams, final int bufferSize) {
+    public SoundPoolCompat(final int maxSamples, final int bufferSize) {
+        mMaxSamples = maxSamples;
         mBufferSize = bufferSize;
 
-        mSamplePool = new SparseArray<>(maxStreams);
+        mSamplePool = new SparseArray<>(maxSamples);
         final HandlerThread thread = new HandlerThread("LoadWorker", android.os.Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         mLoadHandlerThread = new Handler(thread.getLooper());
@@ -75,6 +77,8 @@ public class SoundPoolCompat {
      */
     public final int load(final String path) {
         int id = -1;
+        if (mSamplePool.size() == mMaxSamples) return id;
+
         try {
             final File file = new File(path);
             final ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
@@ -94,6 +98,7 @@ public class SoundPoolCompat {
      */
     public final int load(final Context context, final int resId) {
         int id = -1;
+        if (mSamplePool.size() == mMaxSamples) return id;
 
         final AssetFileDescriptor afd = context.getResources().openRawResourceFd(resId);
         if (afd != null) id = _load(null, afd, afd.getStartOffset(), afd.getLength());
