@@ -186,6 +186,7 @@ public class SoundChannelCompat {
     }
 
     public final void dispose() {
+        stop();
         synchronized (mThreadLock) {
             releaseCodec();
             mLoadedAudio = null;
@@ -206,10 +207,9 @@ public class SoundChannelCompat {
         mAudioTrack.flush();
         mAudioTrack.stop();
 
-        mAudioTrack.setStereoVolume(leftVolume, rightVolume);
+        setVolume(leftVolume, rightVolume);
         setRate(rate);
-
-        mLoopCount = loop + 1;
+        setLoop(loop);
 
         mAudioThread = new Thread(new Runnable() {
             @Override
@@ -263,6 +263,10 @@ public class SoundChannelCompat {
 
     public final void setRate(final float rate) {
         if (mAudioTrack != null) mAudioTrack.setPlaybackRate((int) (rate * mAudioTrack.getSampleRate()));
+    }
+
+    public final void setLoop(final int loop) {
+        mLoopCount = loop + 1;
     }
 
     public final boolean isPlaying() {

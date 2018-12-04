@@ -2,6 +2,7 @@ package com.albul.supportsoundpool;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.media.SoundPool;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
@@ -20,10 +21,13 @@ public class SoundPoolCompat {
     private final LoadSoundRun mLoadSoundRun;
     private final Object mLoadQueueLock;
     private final Queue<SoundChannelMetadata> mToLoadQueue;
+    private OnLoadCompleteListener mOnLoadCompleteListener;
+
     /**
      * In bytes, inclusive
      */
     final int mBufferSize;
+
 
     public SoundPoolCompat(final int maxStreams, final int bufferSize) {
         mBufferSize = bufferSize;
@@ -36,6 +40,22 @@ public class SoundPoolCompat {
         mLoadSoundRun = new LoadSoundRun();
         mLoadQueueLock = new Object();
         mToLoadQueue = new LinkedList<>();
+    }
+
+    /**
+     * Release the SoundPool resources.
+     *
+     * Release all memory and native resources used by the SoundPool
+     * object. The SoundPool can no longer be used and the reference
+     * should be set to null.
+     */
+    public final void release() {
+        for (int i = 0, size = mChannelPool.size(); i < size; i++) {
+            mChannelPool.valueAt(i).dispose();
+        }
+        mChannelPool.clear();
+        mHandlerThread.getLooper().quit();
+        // todo remove load queue
     }
 
     /**
@@ -103,7 +123,6 @@ public class SoundPoolCompat {
         if (channel == null) {
             return false;
         } else {
-            channel.stop();
             channel.dispose();
             mChannelPool.remove(soundID);
             return true;
@@ -151,6 +170,29 @@ public class SoundPoolCompat {
         if (channel != null) channel.resume();
     }
 
+    /**
+     * Pause all active streams.
+     *
+     * Pause all streams that are currently playing. This function
+     * iterates through all the active streams and pauses any that
+     * are playing.
+     */
+    public final void autoPause() {
+        for (int i = 0, size = mChannelPool.size(); i < size; i++) {
+            mChannelPool.valueAt(i).pause();
+        }
+    }
+
+    /**
+     * Resume all previously active streams.
+     *
+     * Automatically resumes all streams that were paused.
+     */
+    public final void autoResume() {
+        for (int i = 0, size = mChannelPool.size(); i < size; i++) {
+            mChannelPool.valueAt(i).resume();
+        }
+    }
 
     /**
      * Set stream volume.
@@ -188,6 +230,40 @@ public class SoundPoolCompat {
     public final void setRate(final int soundID, final float rate) {
         final SoundChannelCompat channel = mChannelPool.get(soundID);
         if (channel != null) channel.setRate(rate);
+    }
+
+    /**
+     * Set loop mode.
+     *
+     * Change the loop mode. A loop value of -1 means loop forever,
+     * a value of 0 means don't loop, other values indicate the
+     * number of repeats, e.g. a value of 1 plays the audio twice.
+     * If the stream does not exist, it will have no effect.
+     *
+     * @param soundID a soundID returned by the load() function
+     * @param loop loop mode (0 = no loop, -1 = loop forever)
+     */
+    public final void setLoop(final int soundID, final int loop) {
+        final SoundChannelCompat channel = mChannelPool.get(soundID);
+        if (channel != null) channel.setLoop(loop);
+    }
+
+    public interface OnLoadCompleteListener {
+        /**
+         * Called when a sound has completed loading.
+         *
+         * @param soundPool SoundPool object from the load() method
+         * @param sampleId the sample ID of the sound loaded.
+         * @param status the status of the load operation (0 = success)
+         */
+        public void onLoadComplete(SoundPool soundPool, int sampleId, int status);
+    }
+
+    /**
+     * Sets the callback hook for the OnLoadCompleteListener.
+     */
+    public void setOnLoadCompleteListener(final OnLoadCompleteListener listener) {
+        mOnLoadCompleteListener = listener;
     }
 
     private class LoadSoundRun implements Runnable {

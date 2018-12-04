@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         private int mShortSound1Id = -1;
         private int mShortSound2Id = -1;
         private int mShortSound3Id = -1;
+
+        private CheckBox mShort3Loop;
 
         private SeekBar mBg1VolumeBar;
         private SeekBar mBg2VolumeBar;
@@ -111,6 +114,11 @@ public class MainActivity extends AppCompatActivity {
             rootView.findViewById(R.id.unload_short_sound_1).setOnClickListener(this);
             rootView.findViewById(R.id.unload_short_sound_2).setOnClickListener(this);
             rootView.findViewById(R.id.unload_short_sound_3).setOnClickListener(this);
+
+            rootView.findViewById(R.id.auto_pause).setOnClickListener(this);
+            rootView.findViewById(R.id.auto_resume).setOnClickListener(this);
+            mShort3Loop = rootView.findViewById(R.id.short_sound_3_loop);
+            mShort3Loop.setOnClickListener(this);
 
             mSoundPoolCompat = new SoundPoolCompat(5, 100_000);
 
@@ -280,8 +288,10 @@ public class MainActivity extends AppCompatActivity {
             return rootView;
         }
 
-        public static float resolveLogVolume(final int volume) {
-            return (float) (1 - (Math.log(MAX_VOLUME_FOR_LOG - volume) / Math.log(MAX_VOLUME_FOR_LOG)));
+        @Override
+        public void onStop() {
+            super.onStop();
+            mSoundPoolCompat.release();
         }
 
         @Override
@@ -323,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     mSoundPoolCompat.play(mShortSound2Id, getVolume(mShort2VolumeBar), getVolume(mShort2VolumeBar), 0, getPitch(mShort2PitchBar));
                     break;
                 case R.id.play_short_sound_3:
-                    mSoundPoolCompat.play(mShortSound3Id, getVolume(mShort3VolumeBar), getVolume(mShort3VolumeBar), 0, getPitch(mShort3PitchBar));
+                    mSoundPoolCompat.play(mShortSound3Id, getVolume(mShort3VolumeBar), getVolume(mShort3VolumeBar), getLoop(mShort3Loop), getPitch(mShort3PitchBar));
                     break;
 
                 case R.id.resume_bg_1:
@@ -407,7 +417,22 @@ public class MainActivity extends AppCompatActivity {
                     mSoundPoolCompat.unload(mShortSound3Id);
                     mShortSound3Id = -1;
                     break;
+
+                case R.id.short_sound_3_loop:
+                    mSoundPoolCompat.setLoop(mShortSound3Id, getLoop(mShort3Loop));
+                    break;
+
+                case R.id.auto_pause:
+                    mSoundPoolCompat.autoPause();
+                    break;
+                case R.id.auto_resume:
+                    mSoundPoolCompat.autoResume();
+                    break;
             }
+        }
+
+        public static float resolveLogVolume(final int volume) {
+            return (float) (1 - (Math.log(MAX_VOLUME_FOR_LOG - volume) / Math.log(MAX_VOLUME_FOR_LOG)));
         }
 
         private float getVolume(final SeekBar seekBar) {
@@ -416,6 +441,10 @@ public class MainActivity extends AppCompatActivity {
 
         private float getPitch(final SeekBar seekBar) {
             return seekBar.getProgress() / 100F;
+        }
+
+        private int getLoop(final CheckBox checkBox) {
+            return checkBox.isChecked() ? -1 : 0;
         }
     }
 }

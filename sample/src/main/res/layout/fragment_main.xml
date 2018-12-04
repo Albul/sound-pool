@@ -480,6 +480,12 @@
                 android:text="Unload"/>
         </LinearLayout>
 
+        <CheckBox
+            android:id="@+id/short_sound_3_loop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loop" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -510,5 +516,27 @@
             android:max="200"
             android:min="50"
             android:progress="100"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="10dp"
+            android:background="@color/colorPrimaryText"/>
+
+        <Button
+            android:id="@+id/auto_pause"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:text="Auto pause"/>
+        
+        <Button
+            android:id="@+id/auto_resume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:singleLine="true"
+            android:text="Auto resume"/>
     </LinearLayout>
 </ScrollView>
