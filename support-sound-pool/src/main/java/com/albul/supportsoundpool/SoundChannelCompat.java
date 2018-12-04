@@ -199,7 +199,7 @@ public class SoundChannelCompat {
     }
 
 
-    public final void play(final float leftVolume, final float rightVolume, final int loop) {
+    public final void play(final float leftVolume, final float rightVolume, final int loop, final float rate) {
         if (mAudioTrack == null) return;
 
         if (isPlaying()) mAudioTrack.pause();
@@ -207,6 +207,7 @@ public class SoundChannelCompat {
         mAudioTrack.stop();
 
         mAudioTrack.setStereoVolume(leftVolume, rightVolume);
+        setRate(rate);
 
         mLoopCount = loop + 1;
 
@@ -258,6 +259,10 @@ public class SoundChannelCompat {
 
     public final void setVolume(final float leftVolume, final float rightVolume) {
         if (mAudioTrack != null) mAudioTrack.setStereoVolume(leftVolume, rightVolume);
+    }
+
+    public final void setRate(final float rate) {
+        if (mAudioTrack != null) mAudioTrack.setPlaybackRate((int) (rate * mAudioTrack.getSampleRate()));
     }
 
     public final boolean isPlaying() {

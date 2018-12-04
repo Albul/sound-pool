@@ -1,7 +1,8 @@
-<RelativeLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:scrollbarStyle="outsideOverlay"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -9,15 +10,71 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
+        android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <Button
-            android:id="@+id/load_bg_1"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorPrimaryText"
+            android:textStyle="bold"
+            android:text="Background sound #1"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load BG 1"/>
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
 
         <SeekBar
             android:id="@+id/bg1_volume"
@@ -27,17 +84,71 @@
             android:min="0"
             android:progress="80"/>
 
-        <View
-            android:layout_width="fill_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray"
-            android:paddingVertical="3dp"/>
 
-        <Button
-            android:id="@+id/load_bg_2"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            android:text="Background sound #2"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load BG 2"/>
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
 
         <SeekBar
             android:id="@+id/bg2_volume"
@@ -47,11 +158,86 @@
             android:min="0"
             android:progress="80"/>
 
-        <Button
-            android:id="@+id/load_bg_3"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Pitch"/>
+
+        <SeekBar
+            android:id="@+id/bg2_pitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load BG 3"/>
+            android:max="200"
+            android:min="50"
+            android:progress="100"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            android:text="Background sound #3"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
 
         <SeekBar
             android:id="@+id/bg3_volume"
@@ -61,70 +247,268 @@
             android:min="0"
             android:progress="80"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            android:text="Short sound #1"/>
 
-        <Button
-            android:id="@+id/phase_transition"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Load Phase Transition"/>
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_short_sound_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
 
         <SeekBar
-            android:id="@+id/phase_transition_volume"
+            android:id="@+id/short_sound_1_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100"
             android:min="0"
             android:progress="80"/>
 
-        <Button
-            android:id="@+id/metronome"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Load Metronome"/>
+            android:layout_marginTop="3dp"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Pitch"/>
 
         <SeekBar
-            android:id="@+id/metronome_volume"
+            android:id="@+id/short_sound_1_pitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:min="50"
+            android:progress="100"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            android:text="Short sound #2"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_short_sound_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
+
+        <SeekBar
+            android:id="@+id/short_sound_2_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100"
             android:min="0"
             android:progress="80"/>
 
-        <View
-            android:layout_width="fill_parent"
-            android:layout_height="1dp"
-            android:background="@android:color/darker_gray"
-            android:paddingVertical="3dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Pitch"/>
 
-        <Button
-            android:id="@+id/play"
+        <SeekBar
+            android:id="@+id/short_sound_2_pitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Play"/>
+            android:max="200"
+            android:min="50"
+            android:progress="100"/>
 
-        <Button
-            android:id="@+id/resume"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimaryText"
+            android:text="Short sound #3"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Resume"/>
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/load_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Load"/>
+            <Button
+                android:id="@+id/play_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Play"/>
+            <Button
+                android:id="@+id/resume_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Resume"/>
+            <Button
+                android:id="@+id/pause_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Pause"/>
+            <Button
+                android:id="@+id/stop_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Stop"/>
+            <Button
+                android:id="@+id/unload_short_sound_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:text="Unload"/>
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/pause"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Volume"/>
+
+        <SeekBar
+            android:id="@+id/short_sound_3_volume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pause"/>
+            android:max="100"
+            android:min="0"
+            android:progress="80"/>
 
-        <Button
-            android:id="@+id/stop"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:textSize="16sp"
+            android:textColor="@color/colorSecondaryText"
+            android:text="Pitch"/>
+
+        <SeekBar
+            android:id="@+id/short_sound_3_pitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Stop"/>
-
-        <Button
-            android:id="@+id/unload"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Unload"/>
+            android:max="200"
+            android:min="50"
+            android:progress="100"/>
     </LinearLayout>
-
-</RelativeLayout>
+</ScrollView>

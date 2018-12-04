@@ -114,7 +114,7 @@ public class SoundPoolCompat {
     public final void play(final int soundID, final float leftVolume, final float rightVolume,
                            final int loop, final float rate) {
         final SoundChannelCompat channel = mChannelPool.get(soundID);
-        if (channel != null) channel.play(leftVolume, rightVolume, loop);
+        if (channel != null) channel.play(leftVolume, rightVolume, loop, rate);
     }
 
     public void stop(final int soundID) {
@@ -171,6 +171,23 @@ public class SoundPoolCompat {
 
     public final void setVolume(final int streamID, final float volume) {
         setVolume(streamID, volume, volume);
+    }
+
+    /**
+     * Change playback rate.
+     *
+     * The playback rate allows the application to vary the playback
+     * rate (pitch) of the sound. A value of 1.0 means playback at
+     * the original frequency. A value of 2.0 means playback twice
+     * as fast, and a value of 0.5 means playback at half speed.
+     * If the stream does not exist, it will have no effect.
+     *
+     * @param soundID a soundID returned by the load() function
+     * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
+     */
+    public final void setRate(final int soundID, final float rate) {
+        final SoundChannelCompat channel = mChannelPool.get(soundID);
+        if (channel != null) channel.setRate(rate);
     }
 
     private class LoadSoundRun implements Runnable {
