@@ -248,11 +248,26 @@ public class SoundSample {
     }
 
     public final void pause() {
-        if (mAudioTrack != null && isPlaying()) mAudioTrack.pause();
+        if (mAudioTrack == null) return;
+        if (isPlaying()) mAudioTrack.pause();
     }
 
     public final void resume() {
-        if (mAudioTrack != null && isPaused()) mAudioTrack.play();
+        if (mAudioTrack == null) return;
+        if (isPaused()) mAudioTrack.play();
+    }
+
+    public void resume(float leftVolume, float rightVolume, int loop, float rate) {
+        if (mAudioTrack == null) return;
+
+        if (isPaused()) {
+            setVolume(leftVolume, rightVolume);
+            setRate(rate);
+            setLoop(loop);
+            resume();
+        } else {
+            play(leftVolume, rightVolume, loop, rate);
+        }
     }
 
     public final void setVolume(final float leftVolume, final float rightVolume) {

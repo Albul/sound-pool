@@ -75,21 +75,18 @@ public class SoundPoolCompat {
 
      * @return a sample ID. This value can be used to play or unload the sound.
      */
-    public final int load(final String path) {
+    public final int load(final String path) throws IOException {
         return load(path, mBufferSize);
     }
 
-    public final int load(final String path, final int bufferSize) {
+    public final int load(final String path, final int bufferSize) throws IOException {
+        if (path == null || path.length() == 0) throw new IOException();
         int id = -1;
         if (mSamplePool.size() == mMaxSamples) return id;
 
-        try {
-            final File file = new File(path);
-            final ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
-            if (pfd != null) id = _load(pfd, null, 0, file.length(), bufferSize);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        final File file = new File(path);
+        final ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        if (pfd != null) id = _load(pfd, null, 0, file.length(), bufferSize);
         return id;
     }
 
@@ -152,10 +149,26 @@ public class SoundPoolCompat {
     }
 
 
-    public final void play(final int sampleId, final float leftVolume, final float rightVolume,
-                           final int loop, final float rate) {
+    public final int play(final int sampleId, final float leftVolume, final float rightVolume,
+                          final int loop, final float rate) {
         final SoundSample sample = mSamplePool.get(sampleId);
-        if (sample != null) sample.play(leftVolume, rightVolume, loop, rate);
+        if (sample == null) {
+            return -1;
+        } else {
+            sample.play(leftVolume, rightVolume, loop, rate);
+            return sampleId;
+        }
+    }
+
+    public final int resume(final int sampleId, final float leftVolume, final float rightVolume,
+                            final int loop, final float rate) {
+        final SoundSample sample = mSamplePool.get(sampleId);
+        if (sample == null) {
+            return -1;
+        } else {
+            sample.resume(leftVolume, rightVolume, loop, rate);
+            return sampleId;
+        }
     }
 
     public void stop(final int sampleId) {

@@ -19,6 +19,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.albul.supportsoundpool.SoundPoolCompat;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final int MAX_VOLUME_FOR_LOG = 101;
@@ -311,7 +313,11 @@ public class MainActivity extends AppCompatActivity {
                     mBg2Id = mSoundPoolCompat.load(v.getContext(), R.raw.bg_sunrise_inhale);
                     break;
                 case R.id.load_bg_3:
-                    mBg3Id = mSoundPoolCompat.load(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PAWA_Kowal.mp3");
+                    try {
+                        mBg3Id = mSoundPoolCompat.load(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PAWA_Kowal.mp3");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     break;
                 case R.id.load_short_sound_1:
                     mShortSound1Id = mSoundPoolCompat.load(v.getContext(), R.raw.voice_female_retain);
