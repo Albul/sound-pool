@@ -1,11 +1,10 @@
-package com.albul.sample;
+package com.olekdia.sample;
 
 import android.Manifest;
 import android.app.Fragment;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,7 +16,7 @@ import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.albul.supportsoundpool.SoundPoolCompat;
+import com.olekdia.supportsoundpool.SoundPoolCompat;
 
 import java.io.IOException;
 
@@ -64,27 +63,21 @@ public class MainActivity extends AppCompatActivity {
         private SeekBar mShort3VolumeBar;
         private SeekBar mShort3PitchBar;
 
-        SoundPool mSoundPool;
         SoundPoolCompat mSoundPoolCompat;
-
-        private int mSoundID;
 
         public PlaceholderFragment() {
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            mSoundPoolCompat = new SoundPoolCompat(5, 100_000);
+            mSoundPoolCompat = new SoundPoolCompat(getActivity(), 5, 100_000);
             mSoundPoolCompat.setOnLoadCompleteListener(new SoundPoolCompat.OnLoadCompleteListener() {
+
                 @Override
-                public void onLoadComplete(SoundPoolCompat soundPool, int sampleId, int status) {
-                    Log.d("load completed soundID", sampleId + ", " + status);
+                public void onLoadComplete(SoundPoolCompat soundPool, int sampleId, boolean isSuccess, @Nullable String errorMsg) {
+                    Log.d("load completed soundID", sampleId + ", isSuccess: " + isSuccess);
                 }
             });
-            mSoundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
-            mSoundID = mSoundPool.load(getContext(), R.raw.sec_tick_bird_goldfinch, 1);
-
-
 
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             // set listeners on buttons
@@ -307,26 +300,27 @@ public class MainActivity extends AppCompatActivity {
             int id = v.getId();
             switch (id) {
                 case R.id.load_bg_1:
-                    mBg1Id = mSoundPoolCompat.load(v.getContext(), R.raw.bg_sea_retain);
+                    mBg1Id = mSoundPoolCompat.load(R.raw.bg_sea_retain);
                     break;
                 case R.id.load_bg_2:
-                    mBg2Id = mSoundPoolCompat.load(v.getContext(), R.raw.bg_sunrise_inhale);
+                    mBg2Id = mSoundPoolCompat.load(R.raw.bg_sunrise_inhale);
                     break;
                 case R.id.load_bg_3:
                     try {
+                        //todo
                         mBg3Id = mSoundPoolCompat.load(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PAWA_Kowal.mp3");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
                 case R.id.load_short_sound_1:
-                    mShortSound1Id = mSoundPoolCompat.load(v.getContext(), R.raw.voice_female_retain);
+                    mShortSound1Id = mSoundPoolCompat.load(R.raw.voice_female_retain);
                     break;
                 case R.id.load_short_sound_2:
-                    mShortSound2Id = mSoundPoolCompat.load(v.getContext(), R.raw.sec_tick_bird_goldfinch);
+                    mShortSound2Id = mSoundPoolCompat.load(R.raw.sec_tick_bird_goldfinch);
                     break;
                 case R.id.load_short_sound_3:
-                    mShortSound3Id = mSoundPoolCompat.load(v.getContext(), R.raw.sec_tick_cricket);
+                    mShortSound3Id = mSoundPoolCompat.load(R.raw.sec_tick_cricket);
                     break;
 
                 case R.id.play_bg_1:
