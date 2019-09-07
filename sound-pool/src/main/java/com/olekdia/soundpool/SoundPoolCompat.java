@@ -7,7 +7,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
 import android.support.annotation.Nullable;
-import android.util.SparseArray;
+
+import com.olekdia.commonhelpers.arrays.FastIntKeySparseArray;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -22,7 +23,7 @@ public class SoundPoolCompat {
 
     private static final int LOADING_COMPLETE = 1;
 
-    private final SparseArray<SoundSample> mSamplePool;
+    private final FastIntKeySparseArray<SoundSample> mSamplePool;
     private EventHandler mEventHandler;
     private final Handler mCloseHandler;
     private final Handler mLoadHandlerThread;
@@ -46,7 +47,7 @@ public class SoundPoolCompat {
         mMaxSamples = maxSamples;
         mBufferSize = bufferSize;
 
-        mSamplePool = new SparseArray<>(maxSamples);
+        mSamplePool = new FastIntKeySparseArray<>(maxSamples);
         final HandlerThread thread = new HandlerThread("LoadWorker", Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         mLoadHandlerThread = new Handler(thread.getLooper());
