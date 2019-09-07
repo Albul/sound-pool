@@ -1,4 +1,4 @@
-package com.olekdia.supportsoundpool;
+package com.olekdia.soundpool;
 
 public class SoundSampleMetadata {
 

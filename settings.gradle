@@ -1,1 +1,2 @@
-include ':sample', ':support-sound-pool'
+include ':sample', ':sound-pool'
+rootProject.name = 'sound-pool-project'

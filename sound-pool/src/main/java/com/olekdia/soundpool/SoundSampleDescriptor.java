@@ -1,4 +1,4 @@
-package com.olekdia.supportsoundpool;
+package com.olekdia.soundpool;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;

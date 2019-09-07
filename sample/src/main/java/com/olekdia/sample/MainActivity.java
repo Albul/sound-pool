@@ -16,7 +16,7 @@ import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.olekdia.supportsoundpool.SoundPoolCompat;
+import com.olekdia.soundpool.SoundPoolCompat;
 
 import java.io.IOException;
 

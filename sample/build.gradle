@@ -5,7 +5,7 @@ android {
     buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.albul.sample"
+        applicationId "com.olekdia.sample"
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
@@ -29,5 +29,5 @@ android {
 
 dependencies {
     implementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
-    implementation project(':support-sound-pool')
+    implementation project(':sound-pool')
 }
