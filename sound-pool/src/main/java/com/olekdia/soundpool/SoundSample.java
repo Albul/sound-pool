@@ -7,9 +7,6 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Handler;
-import android.support.annotation.AnyThread;
-import android.support.annotation.UiThread;
-import android.support.annotation.WorkerThread;
 import android.util.Log;
 
 import java.io.FileDescriptor;
@@ -17,6 +14,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
+
+import androidx.annotation.AnyThread;
+import androidx.annotation.UiThread;
+import androidx.annotation.WorkerThread;
 
 import static android.media.AudioTrack.PLAYSTATE_PAUSED;
 import static android.media.AudioTrack.PLAYSTATE_PLAYING;

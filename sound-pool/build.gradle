@@ -79,5 +79,5 @@ apply from: 'https://raw.githubusercontent.com/kostasdrakonakis/maven-upload/mas
 
 dependencies {
     implementation "com.olekdia:common-helpers:$rootProject.olekdiaLibraryVersion"
-	implementation "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
+	implementation 'androidx.annotation:annotation:1.1.0'
 }
