@@ -6,9 +6,10 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
-import androidx.annotation.Nullable;
 
-import com.olekdia.commonhelpers.arrays.FastIntKeySparseArray;
+import com.olekdia.androidcollection.IntKeySparseArray;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -19,11 +20,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.annotation.Nullable;
+
 public class SoundPoolCompat {
 
     private static final int LOADING_COMPLETE = 1;
 
-    private final FastIntKeySparseArray<SoundSample> mSamplePool;
+    private final IntKeySparseArray<SoundSample> mSamplePool;
     private EventHandler mEventHandler;
     private final Handler mCloseHandler;
     private final Handler mLoadHandlerThread;
@@ -47,7 +50,7 @@ public class SoundPoolCompat {
         mMaxSamples = maxSamples;
         mBufferSize = bufferSize;
 
-        mSamplePool = new FastIntKeySparseArray<>(maxSamples);
+        mSamplePool = new IntKeySparseArray<>(maxSamples);
         final HandlerThread thread = new HandlerThread("LoadWorker", Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         mLoadHandlerThread = new Handler(thread.getLooper());
@@ -478,7 +481,7 @@ public class SoundPoolCompat {
             mNamePrefix = "pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
         }
 
-        public final Thread newThread(final Runnable r) {
+        public final Thread newThread(@NotNull final Runnable r) {
             Thread t = new Thread(mGroup, r, mNamePrefix + mThreadNumber.getAndIncrement(), 0);
             if (t.isDaemon()) t.setDaemon(false);
             if (t.getPriority() != Thread.MAX_PRIORITY) t.setPriority(Thread.MAX_PRIORITY);

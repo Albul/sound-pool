@@ -1,8 +1,12 @@
 package com.olekdia.soundpool;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+
+import com.olekdia.androidcommon.extensions.FileExtensionsKt;
 
 import java.io.Closeable;
 import java.io.File;
@@ -27,6 +31,13 @@ public class SoundSampleDescriptor implements Closeable {
             mFileOffset = mAssetDescr.getStartOffset();
             mFileSize = mAssetDescr.getLength();
             mFd = mAssetDescr.getFileDescriptor();
+        } else if (FileExtensionsKt.isFileDocUri(metadata.mPath)) {
+            final ContentResolver cr = context.getContentResolver();
+            final Uri uri = Uri.parse(metadata.mPath);
+            mFileOffset = 0;
+            mFileSize = FileExtensionsKt.getFileSize(uri, cr);
+            mParcelDescr = cr.openFileDescriptor(uri, "r");
+            mFd = mParcelDescr.getFileDescriptor();
         } else {
             mAssetDescr = null;
 
