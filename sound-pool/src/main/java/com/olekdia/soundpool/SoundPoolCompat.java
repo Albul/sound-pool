@@ -22,6 +22,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.annotation.Nullable;
 
+import static com.olekdia.androidcommon.ConstantsKt.INVALID;
+import static com.olekdia.androidcommon.ConstantsKt.NO_RESOURCE;
+
 public class SoundPoolCompat {
 
     private static final int LOADING_COMPLETE = 1;
@@ -121,13 +124,16 @@ public class SoundPoolCompat {
      * @return a sample ID. This value can be used to play or unload the sound.
      */
     public final int load(final int rawResId) {
+        if (rawResId == NO_RESOURCE) return INVALID;
         return load(rawResId, false);
     }
     public final int load(final int rawResId, final boolean isStatic) {
+        if (rawResId == NO_RESOURCE) return INVALID;
         return load(rawResId, mBufferSize, isStatic);
     }
     public final int load(final int rawResId, final int bufferSize, final boolean isStatic) {
-        if (mSamplePool.size() == mMaxSamples) return -1;
+        if (rawResId == NO_RESOURCE) return INVALID;
+        if (mSamplePool.size() == mMaxSamples) return INVALID;
 
         return _load(rawResId, null, bufferSize, isStatic);
     }
@@ -211,6 +217,7 @@ public class SoundPoolCompat {
      * but it is prohibited to use this id to play, pause, unload
      */
     public final int playOnce(final int resId, final float leftVolume, final float rightVolume, final float rate) {
+        if (resId == NO_RESOURCE) return INVALID;
         final int sampleId = generateNextId();
         final SoundSample sample = new SoundSample(mCloseHandler, 5000, false);
         mSamplePool.append(sampleId, sample);
