@@ -1,13 +1,13 @@
 package com.olekdia.soundpool;
 
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Handler;
-import android.util.Log;
+
+import com.olekdia.androidcommon.extensions.CompatExtensionsKt;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -123,22 +123,24 @@ public class SoundSample {
                 AudioFormat.ENCODING_PCM_16BIT
             );
             final int writeBuffSizeInBytes = mIsFullyLoaded && fileSize < SMALL_FILE_SIZE
-                ? minSize : minSize * 2;
-            mAudioTrack = new AudioTrack(
-                AudioManager.STREAM_MUSIC,
-                sampleRate,
-                channelConfiguration,
-                AudioFormat.ENCODING_PCM_16BIT,
+                ? minSize
+                : minSize * 2;
+
+            mAudioTrack = CompatExtensionsKt.buildAudioTrack(
                 writeBuffSizeInBytes,
-                AudioTrack.MODE_STREAM
+                channelConfiguration,
+                sampleRate
             );
             mFrameSizeInBytes = channels * 2; //  frameSizeInBytes = mChannelCount * AudioFormat.getBytesPerSample(mAudioFormat);
 
-            if (BuildConfig.DEBUG) Log.d("SoundSample loaded:", " fileSize(Kb): " + fileSize / 1024
-                + ", loadedSize(Kb): " + (mAudioBuffer == null ? "0" : mBufferSize / 1024)
-                + ", writeBuffSize(Bytes): " + writeBuffSizeInBytes
-                + ", mIsFullyLoaded: " + mIsFullyLoaded
-                + ", isStatic: " + mIsStatic);
+            /*if (BuildConfig.DEBUG) Log.d(
+                "SoundSample loaded:",
+                " fileSize(Kb): " + fileSize / 1024
+                    + ", loadedSize(Kb): " + (mAudioBuffer == null ? "0" : mBufferSize / 1024)
+                    + ", writeBuffSize(b): " + writeBuffSizeInBytes
+                    + ", mIsFullyLoaded: " + mIsFullyLoaded
+                    + ", isStatic: " + mIsStatic
+            );*/
         }
         mIsLockedByNonUiThread = false;
         return true;

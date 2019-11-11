@@ -26,6 +26,10 @@ android {
 	}
 }
 
+tasks.withType(Javadoc).all {
+    enabled = false
+}
+
 apply plugin: 'com.jfrog.bintray'
 
 if (project.hasProperty("android")) {
