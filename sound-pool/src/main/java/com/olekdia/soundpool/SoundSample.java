@@ -58,14 +58,22 @@ public class SoundSample {
     private volatile boolean mIsLockedByNonUiThread;
     private volatile boolean mIsClosedSet;
 
-    public SoundSample(final Handler closeHandler, final int bufferMaxSize, final boolean isStatic) {
+    public SoundSample(
+        final Handler closeHandler,
+        final int bufferMaxSize,
+        final boolean isStatic
+    ) {
         mCloseHandler = closeHandler;
         mBufferMaxSize = isStatic ? bufferMaxSize * 2 : bufferMaxSize;
         mIsStatic = isStatic;
     }
 
     @WorkerThread
-    public boolean load(final FileDescriptor fd, final long fileOffset, final long fileSize) {
+    public boolean load(
+        final FileDescriptor fd,
+        final long fileOffset,
+        final long fileSize
+    ) {
         synchronized (mLockCodec) {
             mIsLockedByNonUiThread = true;
             mIsStatic = mIsStatic && fileSize < MAX_STATIC_SIZE;
@@ -106,20 +114,31 @@ public class SoundSample {
 
             if (mIsClosedSet) return scheduleClose();
 
-            final int channelConfiguration = channels == 1 ? AudioFormat.CHANNEL_OUT_MONO : AudioFormat.CHANNEL_OUT_STEREO;
-            final int minSize = AudioTrack.getMinBufferSize(sampleRate, channelConfiguration, AudioFormat.ENCODING_PCM_16BIT);
+            final int channelConfiguration = channels == 1
+                ? AudioFormat.CHANNEL_OUT_MONO
+                : AudioFormat.CHANNEL_OUT_STEREO;
+            final int minSize = AudioTrack.getMinBufferSize(
+                sampleRate,
+                channelConfiguration,
+                AudioFormat.ENCODING_PCM_16BIT
+            );
             final int writeBuffSizeInBytes = mIsFullyLoaded && fileSize < SMALL_FILE_SIZE
-                    ? minSize : minSize * 2;
-            mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, channelConfiguration,
-                                         AudioFormat.ENCODING_PCM_16BIT, writeBuffSizeInBytes,
-                                         AudioTrack.MODE_STREAM);
+                ? minSize : minSize * 2;
+            mAudioTrack = new AudioTrack(
+                AudioManager.STREAM_MUSIC,
+                sampleRate,
+                channelConfiguration,
+                AudioFormat.ENCODING_PCM_16BIT,
+                writeBuffSizeInBytes,
+                AudioTrack.MODE_STREAM
+            );
             mFrameSizeInBytes = channels * 2; //  frameSizeInBytes = mChannelCount * AudioFormat.getBytesPerSample(mAudioFormat);
 
             if (BuildConfig.DEBUG) Log.d("SoundSample loaded:", " fileSize(Kb): " + fileSize / 1024
-                    + ", loadedSize(Kb): " + (mAudioBuffer == null ? "0" : mBufferSize / 1024)
-                    + ", writeBuffSize(Bytes): " + writeBuffSizeInBytes
-                    + ", mIsFullyLoaded: " + mIsFullyLoaded
-                    + ", isStatic: " + mIsStatic);
+                + ", loadedSize(Kb): " + (mAudioBuffer == null ? "0" : mBufferSize / 1024)
+                + ", writeBuffSize(Bytes): " + writeBuffSizeInBytes
+                + ", mIsFullyLoaded: " + mIsFullyLoaded
+                + ", isStatic: " + mIsStatic);
         }
         mIsLockedByNonUiThread = false;
         return true;
@@ -213,8 +232,8 @@ public class SoundSample {
             releaseCodec();
         } else {
             if (!isFromStart
-                    && mAudioTrack != null
-                    && mAudioTrack.getPlayState() != PLAYSTATE_PAUSED) {
+                && mAudioTrack != null
+                && mAudioTrack.getPlayState() != PLAYSTATE_PAUSED) {
 
                 if (mIsStatic) {
                     if (mAudioTrack.getPlayState() != PLAYSTATE_STOPPED) {
@@ -273,9 +292,13 @@ public class SoundSample {
     }
 
     @UiThread
-    public final void play(final float leftVolume, final float rightVolume,
-                           final int loop, final float rate,
-                           final ThreadPoolExecutor threadPool) {
+    public final void play(
+        final float leftVolume,
+        final float rightVolume,
+        final int loop,
+        final float rate,
+        final ThreadPoolExecutor threadPool
+    ) {
         if (mAudioTrack == null || mAudioTrack.getPlayState() == PLAYSTATE_PLAYING) return;
 
         setVolume(leftVolume, rightVolume);
@@ -287,8 +310,11 @@ public class SoundSample {
     }
 
     @WorkerThread
-    public final void play(final float leftVolume, final float rightVolume,
-                           final float rate) {
+    public final void play(
+        final float leftVolume,
+        final float rightVolume,
+        final float rate
+    ) {
         if (mAudioTrack == null || mAudioTrack.getPlayState() == PLAYSTATE_PLAYING) return;
 
         mIsLockedByNonUiThread = true;
@@ -330,8 +356,13 @@ public class SoundSample {
     }
 
     @AnyThread
-    public final void setVolume(final float leftVolume, final float rightVolume) {
-        if (mAudioTrack != null && (mCurrLeftVolume != leftVolume || mCurrRightVolume != rightVolume)) {
+    public final void setVolume(
+        final float leftVolume,
+        final float rightVolume
+    ) {
+        if (mAudioTrack != null
+            && (mCurrLeftVolume != leftVolume || mCurrRightVolume != rightVolume)
+        ) {
             mAudioTrack.setStereoVolume(leftVolume, rightVolume);
             mCurrLeftVolume = leftVolume;
             mCurrRightVolume = rightVolume;
@@ -340,7 +371,9 @@ public class SoundSample {
 
     @AnyThread
     public final void setRate(final float rate) {
-        if (mAudioTrack != null && mCurrRate != rate) {
+        if (mAudioTrack != null
+            && mCurrRate != rate
+        ) {
             mAudioTrack.setPlaybackRate((int) (rate * mAudioTrack.getSampleRate()));
             mCurrRate = rate;
         }

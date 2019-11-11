@@ -48,7 +48,11 @@ public class SoundPoolCompat {
 
     private int mNextId;
 
-    public SoundPoolCompat(final Context context, final int maxSamples, final int bufferSize) {
+    public SoundPoolCompat(
+        final Context context,
+        final int maxSamples,
+        final int bufferSize
+    ) {
         mContext = context;
         mMaxSamples = maxSamples;
         mBufferSize = bufferSize;
@@ -105,11 +109,18 @@ public class SoundPoolCompat {
         return load(path, false);
     }
 
-    public final int load(final String path, final boolean isStatic) throws IOException {
+    public final int load(
+        final String path,
+        final boolean isStatic
+    ) throws IOException {
         return load(path, mBufferSize, isStatic);
     }
 
-    public final int load(final String path, final int bufferSize, final boolean isStatic) throws IOException {
+    public final int load(
+        final String path,
+        final int bufferSize,
+        final boolean isStatic
+    ) throws IOException {
         if (path == null || path.length() == 0) throw new IOException();
         if (mSamplePool.size() == mMaxSamples) return -1;
 
@@ -127,18 +138,30 @@ public class SoundPoolCompat {
         if (rawResId == NO_RESOURCE) return INVALID;
         return load(rawResId, false);
     }
-    public final int load(final int rawResId, final boolean isStatic) {
+    public final int load(
+        final int rawResId,
+        final boolean isStatic
+    ) {
         if (rawResId == NO_RESOURCE) return INVALID;
         return load(rawResId, mBufferSize, isStatic);
     }
-    public final int load(final int rawResId, final int bufferSize, final boolean isStatic) {
+    public final int load(
+        final int rawResId,
+        final int bufferSize,
+        final boolean isStatic
+    ) {
         if (rawResId == NO_RESOURCE) return INVALID;
         if (mSamplePool.size() == mMaxSamples) return INVALID;
 
         return _load(rawResId, null, bufferSize, isStatic);
     }
 
-    private int _load(final int rawResId, final String path, final int bufferSize, final boolean isStatic) {
+    private int _load(
+        final int rawResId,
+        final String path,
+        final int bufferSize,
+        final boolean isStatic
+    ) {
         final int sampleId = generateNextId();
 
         final SoundSample sample = new SoundSample(mCloseHandler, bufferSize, isStatic);
@@ -198,8 +221,13 @@ public class SoundPoolCompat {
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
      * @return the same sampleId or -1 if there is no such sample
      */
-    public final int play(final int sampleId, final float leftVolume, final float rightVolume,
-                           final int loop, final float rate) {
+    public final int play(
+        final int sampleId,
+        final float leftVolume,
+        final float rightVolume,
+        final int loop,
+        final float rate
+    ) {
         final SoundSample sample = mSamplePool.get(sampleId);
         if (sample == null) {
             return -1;
@@ -216,7 +244,12 @@ public class SoundPoolCompat {
      * @return return sampleId that can be used to stop this sample,
      * but it is prohibited to use this id to play, pause, unload
      */
-    public final int playOnce(final int resId, final float leftVolume, final float rightVolume, final float rate) {
+    public final int playOnce(
+        final int resId,
+        final float leftVolume,
+        final float rightVolume,
+        final float rate
+    ) {
         if (resId == NO_RESOURCE) return INVALID;
         final int sampleId = generateNextId();
         final SoundSample sample = new SoundSample(mCloseHandler, 5000, false);
@@ -247,7 +280,12 @@ public class SoundPoolCompat {
      * @return return sampleId that can be used to stop this sample,
      * but it is prohibited to use this id to play, pause, unload
      */
-    public final int playOnce(final String path, final float leftVolume, final float rightVolume, final float rate) {
+    public final int playOnce(
+        final String path,
+        final float leftVolume,
+        final float rightVolume,
+        final float rate
+    ) {
         final int sampleId = generateNextId();
         final SoundSample sample = new SoundSample(mCloseHandler, 5000, false);
         mSamplePool.append(sampleId, sample);
@@ -341,7 +379,11 @@ public class SoundPoolCompat {
      * @param leftVolume left volume value (range = 0.0 to 1.0)
      * @param rightVolume right volume value (range = 0.0 to 1.0)
      */
-    public final void setVolume(final int sampleId, final float leftVolume, final float rightVolume) {
+    public final void setVolume(
+        final int sampleId,
+        final float leftVolume,
+        final float rightVolume
+    ) {
         final SoundSample sample = mSamplePool.get(sampleId);
         if (sample != null) sample.setVolume(leftVolume, rightVolume);
     }
@@ -408,7 +450,12 @@ public class SoundPoolCompat {
          * @param sampleId the sample ID of the sound loaded.
          * @param isSuccess
          */
-        public void onLoadComplete(SoundPoolCompat soundPool, int sampleId, boolean isSuccess, @Nullable String errorMsg);
+        public void onLoadComplete(
+            SoundPoolCompat soundPool,
+            int sampleId,
+            boolean isSuccess,
+            @Nullable String errorMsg
+        );
     }
 
 
@@ -448,7 +495,11 @@ public class SoundPoolCompat {
 
             if (sample != null) {
                 try (final SoundSampleDescriptor descr = new SoundSampleDescriptor(mContext, metadata)) {
-                    isSuccess = sample.load(descr.getFileDescriptor(), descr.mFileOffset, descr.mFileSize);
+                    isSuccess = sample.load(
+                        descr.getFileDescriptor(),
+                        descr.mFileOffset,
+                        descr.mFileSize
+                    );
                 } catch (Exception e) {
                     e.printStackTrace();
                     errorMsg = e.getMessage();
@@ -456,7 +507,12 @@ public class SoundPoolCompat {
             }
 
             if (mEventHandler != null && sample != null && !sample.isClosedSet()) {
-                mEventHandler.sendMessage(mEventHandler.obtainMessage(LOADING_COMPLETE, metadata.mSampleId, isSuccess ? 1 : 0, errorMsg));
+                mEventHandler.sendMessage(
+                    mEventHandler.obtainMessage(
+                        LOADING_COMPLETE,
+                        metadata.mSampleId, isSuccess ? 1 : 0, errorMsg
+                    )
+                );
             }
 
             if (!currentThread.isInterrupted()) {
@@ -483,13 +539,19 @@ public class SoundPoolCompat {
 
         SoundThreadFactory() {
             final SecurityManager s = System.getSecurityManager();
-            mGroup = (s != null) ? s.getThreadGroup() :
-                    Thread.currentThread().getThreadGroup();
+            mGroup = (s != null)
+                ? s.getThreadGroup()
+                : Thread.currentThread().getThreadGroup();
             mNamePrefix = "pool-" + POOL_NUMBER.getAndIncrement() + "-thread-";
         }
 
         public final Thread newThread(@NotNull final Runnable r) {
-            Thread t = new Thread(mGroup, r, mNamePrefix + mThreadNumber.getAndIncrement(), 0);
+            final Thread t = new Thread(
+                mGroup,
+                r,
+                mNamePrefix + mThreadNumber.getAndIncrement(),
+                0
+            );
             if (t.isDaemon()) t.setDaemon(false);
             if (t.getPriority() != Thread.MAX_PRIORITY) t.setPriority(Thread.MAX_PRIORITY);
             return t;

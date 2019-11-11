@@ -23,7 +23,10 @@ public class SoundSampleDescriptor implements Closeable {
     private ParcelFileDescriptor mParcelDescr;
     private FileDescriptor mFd;
 
-    public SoundSampleDescriptor(final Context context, final SoundSampleMetadata metadata) throws FileNotFoundException {
+    public SoundSampleDescriptor(
+        final Context context,
+        final SoundSampleMetadata metadata
+    ) throws FileNotFoundException {
         if (metadata.mPath == null) {
             mParcelDescr = null;
 
