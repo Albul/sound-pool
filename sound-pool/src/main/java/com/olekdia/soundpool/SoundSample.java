@@ -5,10 +5,10 @@ import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.os.Handler;
 
 import com.olekdia.androidcommon.extensions.CompatExtensionsKt;
 
+import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,14 +23,13 @@ import static android.media.AudioTrack.PLAYSTATE_PAUSED;
 import static android.media.AudioTrack.PLAYSTATE_PLAYING;
 import static android.media.AudioTrack.PLAYSTATE_STOPPED;
 
-public class SoundSample {
+public class SoundSample implements Closeable {
 
     public final static int MAX_STATIC_SIZE = 140 * 1024; // 140 Kb
     public final static int SMALL_FILE_SIZE = 20 * 1024; // 20 Kb
 
+    private final int mId;
     private final int mBufferMaxSize;
-    private final Handler mCloseHandler;
-    private final Runnable mCloseRun = new CloseRunnable();
     private final Runnable mPlayRun = new PlayRunnable();
     private final Object mLockCodec = new Object();
     private AudioTrack mAudioTrack; // Null if initial data not loaded yet
@@ -55,17 +54,20 @@ public class SoundSample {
     // Bug fix flag. On early androids api 16 - 18 the bug occurs when call codec.stop(),
     // and then reconfigure it and start it again before reaching eof
     private volatile boolean mIsCodecStarted;
-    private volatile boolean mIsLockedByNonUiThread;
     private volatile boolean mIsClosedSet;
 
     public SoundSample(
-        final Handler closeHandler,
+        final int id,
         final int bufferMaxSize,
         final boolean isStatic
     ) {
-        mCloseHandler = closeHandler;
+        mId = id;
         mBufferMaxSize = isStatic ? bufferMaxSize * 2 : bufferMaxSize;
         mIsStatic = isStatic;
+    }
+
+    public final int getId() {
+        return mId;
     }
 
     @WorkerThread
@@ -75,7 +77,6 @@ public class SoundSample {
         final long fileSize
     ) {
         synchronized (mLockCodec) {
-            mIsLockedByNonUiThread = true;
             mIsStatic = mIsStatic && fileSize < MAX_STATIC_SIZE;
             mAudioBuffer = mIsStatic ? new byte[(int) fileSize * 12] : new byte[mBufferMaxSize + 1024 * 1024];
 
@@ -98,8 +99,12 @@ public class SoundSample {
                 e.printStackTrace();
             }
 
-            if (mMediaFormat == null || mime == null || !mime.startsWith("audio/")) {
-                return scheduleClose();
+            if (mMediaFormat == null
+                || mime == null
+                || !mime.startsWith("audio/")
+            ) {
+                close();
+                return false;
             }
 
             try {
@@ -107,12 +112,17 @@ public class SoundSample {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (mCodec == null) return scheduleClose();
+            if (mCodec == null) {
+                close();
+                return false;
+            }
 
             mExtractor.selectTrack(0);
             loadNextSamples(true);
 
-            if (mIsClosedSet) return scheduleClose();
+            if (mIsClosedSet) {
+                return false;
+            }
 
             final int channelConfiguration = channels == 1
                 ? AudioFormat.CHANNEL_OUT_MONO
@@ -142,7 +152,6 @@ public class SoundSample {
                     + ", isStatic: " + mIsStatic
             );*/
         }
-        mIsLockedByNonUiThread = false;
         return true;
     }
 
@@ -257,23 +266,22 @@ public class SoundSample {
         }
     }
 
-    public final boolean isClosedSet() {
+    public final boolean isClosed() {
         return mIsClosedSet;
     }
 
-    @UiThread
-    public final void setClosed() {
-        stop();
+    @Override
+    public void close() {
         mIsClosedSet = true;
-
-        mCloseHandler.post(mCloseRun);
-    }
-
-    @WorkerThread
-    private boolean scheduleClose() {
-        mIsLockedByNonUiThread = false;
-        mCloseHandler.post(mCloseRun);
-        return false;
+        synchronized (mLockCodec) {
+            if (mAudioTrack != null) {
+                if (mAudioTrack.getPlayState() != PLAYSTATE_STOPPED) stop();
+                mAudioTrack.release();
+                mAudioTrack = null;
+            }
+            releaseCodec();
+            mAudioBuffer = null;
+        }
     }
 
     private void stopCodec() {
@@ -307,7 +315,6 @@ public class SoundSample {
         setRate(rate);
         setLoop(loop);
 
-        mIsLockedByNonUiThread = true;
         threadPool.execute(mPlayRun);
     }
 
@@ -319,7 +326,6 @@ public class SoundSample {
     ) {
         if (mAudioTrack == null || mAudioTrack.getPlayState() == PLAYSTATE_PLAYING) return;
 
-        mIsLockedByNonUiThread = true;
         setVolume(leftVolume, rightVolume);
         setRate(rate);
         mPlayRun.run();
@@ -353,7 +359,6 @@ public class SoundSample {
     public final void resume(final ThreadPoolExecutor threadPool) {
         if (mAudioTrack == null || mAudioTrack.getPlayState() != PLAYSTATE_PAUSED) return;
 
-        mIsLockedByNonUiThread = true;
         threadPool.execute(mPlayRun);
     }
 
@@ -393,14 +398,16 @@ public class SoundSample {
     public final class PlayRunnable implements Runnable {
         @Override
         public void run() {
-            try {
                 synchronized (mLockCodec) {
                     while (mToPlayCount > 0) {
                         if (mIsClosedSet) return;
 
                         mAudioTrack.play();
 
-                        if (mAudioBuffer != null && (mIsFullyLoaded || mPausedPlaybackInBytes == 0)) {
+                        if (mAudioBuffer != null
+                            && (mIsFullyLoaded
+                                || mPausedPlaybackInBytes == 0)
+                        ) {
                             final int offsetInBytes = mPausedPlaybackInBytes;
                             mPausedPlaybackInBytes = 0;
                             mAudioTrack.write(mAudioBuffer, offsetInBytes, mBufferSize);
@@ -420,32 +427,6 @@ public class SoundSample {
                     mAudioTrack.stop();
                     mPausedPlaybackInBytes = 0;
                 }
-            } finally {
-                mIsLockedByNonUiThread = false;
-            }
-        }
-    }
-
-    public final class CloseRunnable implements Runnable {
-
-        private int mDelay = 0;
-
-        @Override
-        @UiThread
-        public void run() {
-            if (mIsLockedByNonUiThread) {
-                mCloseHandler.postDelayed(this, mDelay += 10);
-            } else {
-                synchronized (mLockCodec) {
-                    releaseCodec();
-                    mAudioBuffer = null;
-                    if (mAudioTrack != null) {
-                        if (mAudioTrack.getPlayState() != PLAYSTATE_STOPPED) stop();
-                        mAudioTrack.release();
-                        mAudioTrack = null;
-                    }
-                }
-            }
         }
     }
 }

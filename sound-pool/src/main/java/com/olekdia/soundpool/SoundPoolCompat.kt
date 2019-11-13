@@ -58,13 +58,9 @@ class SoundPoolCompat(
         toLoadQueue.clear()
 
         for (i in 0 until samplePool.size()) {
-            try {
-                samplePool.valueAt(i)?.let {
-                    it.stop()
-                    it.close()
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
+            samplePool.valueAt(i)?.let {
+                it.stop()
+                it.close()
             }
         }
         samplePool.clear()
@@ -158,6 +154,7 @@ class SoundPoolCompat(
     fun unload(sampleId: Int): Boolean = samplePool.get(sampleId)
         ?.let { sample ->
             samplePool.remove(sampleId)
+            sample.stop()
             toUnloadQueue.add(sample)
             loadHandlerThread.post(loadSoundRun)
             true
@@ -467,11 +464,7 @@ class SoundPoolCompat(
 
         private fun tryUnload(): Boolean = toUnloadQueue.poll()
             ?.let { sample ->
-                try {
-                    sample.close()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
+                sample.close()
                 true
             }
             ?: false
