@@ -12,7 +12,6 @@ import com.olekdia.androidcollection.IntKeySparseArray;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -31,12 +30,11 @@ public class SoundPoolCompat {
 
     private final IntKeySparseArray<SoundSample> mSamplePool;
     private EventHandler mEventHandler;
-    private final Handler mCloseHandler;
     private final Handler mLoadHandlerThread;
     private final ThreadPoolExecutor mPlayThreadPool;
     private final LoadSoundRun mLoadSoundRun;
-    private final Object mLoadQueueLock;
     private final Queue<SoundSampleMetadata> mToLoadQueue;
+    private final Queue<SoundSample> mToUnloadQueue;
     private final Context mContext;
     private OnLoadCompleteListener mOnLoadCompleteListener;
 
@@ -61,13 +59,17 @@ public class SoundPoolCompat {
         final HandlerThread thread = new HandlerThread("LoadWorker", Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
         mLoadHandlerThread = new Handler(thread.getLooper());
-        mCloseHandler = new Handler();
-        mPlayThreadPool = new ThreadPoolExecutor(4, 8, 2, TimeUnit.SECONDS,
-                                                 new LinkedBlockingQueue<Runnable>(),
-                                                 new SoundThreadFactory());
+        mPlayThreadPool = new ThreadPoolExecutor(
+            4,
+            8,
+            2,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>(),
+            new SoundThreadFactory()
+        );
         mLoadSoundRun = new LoadSoundRun();
-        mLoadQueueLock = new Object();
-        mToLoadQueue = new LinkedList<>();
+        mToLoadQueue = new LinkedBlockingQueue<>();
+        mToUnloadQueue = new LinkedBlockingQueue<>();
     }
 
     /**
@@ -78,16 +80,24 @@ public class SoundPoolCompat {
      * should be set to null.
      */
     public final void release() {
-        for (int i = 0, size = mSamplePool.size(); i < size; i++) {
-            mSamplePool.valueAt(i).setClosed();
-        }
-        mSamplePool.clear();
         mLoadHandlerThread.removeCallbacksAndMessages(null);
         mLoadHandlerThread.getLooper().quit();
-        mPlayThreadPool.shutdown();
-        synchronized (mLoadQueueLock) {
-            mToLoadQueue.clear();
+        mToLoadQueue.clear();
+
+        for (int i = 0, size = mSamplePool.size(); i < size; i++) {
+            try {
+                final SoundSample sample = mSamplePool.valueAt(i);
+                if (sample != null) {
+                    sample.stop();
+                    sample.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        mSamplePool.clear();
+        mToUnloadQueue.clear();
+        mPlayThreadPool.shutdown();
         mNextId = 0;
     }
 
@@ -164,12 +174,10 @@ public class SoundPoolCompat {
     ) {
         final int sampleId = generateNextId();
 
-        final SoundSample sample = new SoundSample(mCloseHandler, bufferSize, isStatic);
+        final SoundSample sample = new SoundSample(bufferSize, isStatic);
         mSamplePool.append(sampleId, sample);
 
-        synchronized (mLoadQueueLock) {
-            mToLoadQueue.add(new SoundSampleMetadata(sampleId, rawResId, path));
-        }
+        mToLoadQueue.add(new SoundSampleMetadata(sampleId, rawResId, path));
 
         mLoadHandlerThread.post(mLoadSoundRun);
 
@@ -194,7 +202,8 @@ public class SoundPoolCompat {
             return false;
         } else {
             mSamplePool.remove(sampleId);
-            sample.setClosed();
+            mToUnloadQueue.add(sample);
+            mLoadHandlerThread.post(mLoadSoundRun);
             return true;
         }
     }
@@ -252,13 +261,13 @@ public class SoundPoolCompat {
     ) {
         if (resId == NO_RESOURCE) return INVALID;
         final int sampleId = generateNextId();
-        final SoundSample sample = new SoundSample(mCloseHandler, 5000, false);
+        final SoundSample sample = new SoundSample(5000, false);
         mSamplePool.append(sampleId, sample);
 
         mPlayThreadPool.execute(() -> {
             try (final SoundSampleDescriptor descr = new SoundSampleDescriptor(mContext, new SoundSampleMetadata(sampleId, resId , null))) {
                 if (sample.load(descr.getFileDescriptor(), descr.mFileOffset, descr.mFileSize)) {
-                    if (!sample.isClosedSet()) sample.play(leftVolume, rightVolume, rate);
+                    if (!sample.isClosed()) sample.play(leftVolume, rightVolume, rate);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -287,13 +296,13 @@ public class SoundPoolCompat {
         final float rate
     ) {
         final int sampleId = generateNextId();
-        final SoundSample sample = new SoundSample(mCloseHandler, 5000, false);
+        final SoundSample sample = new SoundSample(5000, false);
         mSamplePool.append(sampleId, sample);
 
         mPlayThreadPool.execute(() -> {
             try (final SoundSampleDescriptor descr = new SoundSampleDescriptor(mContext, new SoundSampleMetadata(sampleId, 0 , path))) {
                 if (sample.load(descr.getFileDescriptor(), descr.mFileOffset, descr.mFileSize)) {
-                    if (!sample.isClosedSet()) sample.play(leftVolume, rightVolume, rate);
+                    if (!sample.isClosed()) sample.play(leftVolume, rightVolume, rate);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -477,52 +486,78 @@ public class SoundPoolCompat {
     private class LoadSoundRun implements Runnable {
         @Override
         public void run() {
-            if (mToLoadQueue.isEmpty()) return;
+            if (mToLoadQueue.isEmpty() && mToUnloadQueue.isEmpty()) return;
 
             final Thread currentThread = Thread.currentThread();
             if (currentThread.getPriority() != Thread.NORM_PRIORITY) {
                 currentThread.setPriority(Thread.NORM_PRIORITY);
             }
 
-            SoundSampleMetadata metadata;
-            synchronized (mLoadQueueLock) {
-                metadata = mToLoadQueue.poll();
-            }
-
-            final SoundSample sample = mSamplePool.get(metadata.mSampleId);
-            boolean isSuccess = false;
-            String errorMsg = null;
-
-            if (sample != null) {
-                try (final SoundSampleDescriptor descr = new SoundSampleDescriptor(mContext, metadata)) {
-                    isSuccess = sample.load(
-                        descr.getFileDescriptor(),
-                        descr.mFileOffset,
-                        descr.mFileSize
-                    );
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    errorMsg = e.getMessage();
-                }
-            }
-
-            if (mEventHandler != null && sample != null && !sample.isClosedSet()) {
-                mEventHandler.sendMessage(
-                    mEventHandler.obtainMessage(
-                        LOADING_COMPLETE,
-                        metadata.mSampleId, isSuccess ? 1 : 0, errorMsg
-                    )
-                );
+            if (!tryUnload()) {
+                tryLoad();
             }
 
             if (!currentThread.isInterrupted()) {
-                synchronized (mLoadQueueLock) {
-                    if (mToLoadQueue.size() > 0) {
-                        mLoadHandlerThread.post(mLoadSoundRun);
-                    } else {
-                        currentThread.setPriority(Thread.MIN_PRIORITY);
+                if (!mToUnloadQueue.isEmpty()
+                    || !mToLoadQueue.isEmpty()
+                ) {
+                    mLoadHandlerThread.post(mLoadSoundRun);
+                } else {
+                    currentThread.setPriority(Thread.MIN_PRIORITY);
+                }
+            }
+        }
+
+        private boolean tryUnload() {
+            final SoundSample sample = mToUnloadQueue.poll();
+            if (sample == null) {
+                return false;
+            } else {
+                try {
+                    sample.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        }
+
+        private boolean tryLoad() {
+            final SoundSampleMetadata metadata = mToLoadQueue.poll();
+            if (metadata == null) {
+                return false;
+            } else {
+                final SoundSample sample = mSamplePool.get(metadata.mSampleId);
+                boolean isSuccess = false;
+                String errorMsg = null;
+
+                if (sample != null) {
+                    try (
+                        final SoundSampleDescriptor descr = new SoundSampleDescriptor(mContext, metadata)
+                    ) {
+                        isSuccess = sample.load(
+                            descr.getFileDescriptor(),
+                            descr.mFileOffset,
+                            descr.mFileSize
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        errorMsg = e.getMessage();
                     }
                 }
+
+                if (mEventHandler != null
+                    && sample != null
+                    && !sample.isClosed()
+                ) {
+                    mEventHandler.sendMessage(
+                        mEventHandler.obtainMessage(
+                            LOADING_COMPLETE,
+                            metadata.mSampleId, isSuccess ? 1 : 0, errorMsg
+                        )
+                    );
+                }
+                return true;
             }
         }
     }
