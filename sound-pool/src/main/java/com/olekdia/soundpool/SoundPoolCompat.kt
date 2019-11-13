@@ -435,7 +435,7 @@ class SoundPoolCompat(
                     this@SoundPoolCompat,
                     msg.arg1,
                     msg.arg2 == 1,
-                    msg.obj as String
+                    msg.obj as? String
                 )
             }
         }
