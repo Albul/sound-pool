@@ -307,8 +307,10 @@ class SoundSample(
     }
 
     fun isPlaying(): Boolean = audioTrack?.playState == PLAYSTATE_PLAYING
-    fun isStopped(): Boolean = audioTrack?.playState == PLAYSTATE_STOPPED
+
     fun isPaused(): Boolean = audioTrack?.playState == PLAYSTATE_PAUSED
+
+    fun isStopped(): Boolean = audioTrack?.playState == PLAYSTATE_STOPPED
 
     @UiThread
     fun play(

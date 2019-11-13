@@ -3,7 +3,6 @@ package com.olekdia.sample;
 import android.Manifest;
 import android.app.Fragment;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -301,27 +300,28 @@ public class MainActivity extends AppCompatActivity {
             int id = v.getId();
             switch (id) {
                 case R.id.load_bg_1:
-                    mBg1Id = mSoundPoolCompat.load(R.raw.bg_sea_retain);
+                    if (mBg1Id == -1) {
+                        mBg1Id = mSoundPoolCompat.load(R.raw.bg_sea_retain);
+                    }
                     break;
                 case R.id.load_bg_2:
-                    mBg2Id = mSoundPoolCompat.load(R.raw.bg_sunrise_inhale);
+                    if (mBg2Id == -1) mBg2Id = mSoundPoolCompat.load(R.raw.bg_sunrise_inhale);
                     break;
                 case R.id.load_bg_3:
                     try {
-                        //todo
-                        mBg3Id = mSoundPoolCompat.load(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PAWA_Kowal.mp3");
+                        if (mBg3Id == -1) mBg3Id = mSoundPoolCompat.load("file://android_asset/PAWA_Kowal.mp3");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     break;
                 case R.id.load_short_sound_1:
-                    mShortSound1Id = mSoundPoolCompat.load(R.raw.voice_female_retain);
+                    if (mShortSound1Id == -1) mShortSound1Id = mSoundPoolCompat.load(R.raw.voice_female_retain);
                     break;
                 case R.id.load_short_sound_2:
-                    mShortSound2Id = mSoundPoolCompat.load(R.raw.sec_tick_bird_goldfinch);
+                    if (mShortSound2Id == -1) mShortSound2Id = mSoundPoolCompat.load(R.raw.sec_tick_bird_goldfinch);
                     break;
                 case R.id.load_short_sound_3:
-                    mShortSound3Id = mSoundPoolCompat.load(R.raw.sec_tick_cricket);
+                    if (mShortSound3Id == -1) mShortSound3Id = mSoundPoolCompat.load(R.raw.sec_tick_cricket);
                     break;
 
                 case R.id.play_bg_1:
