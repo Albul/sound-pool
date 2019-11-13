@@ -269,7 +269,7 @@ class SoundPoolCompat(
             try {
                 SoundSampleDescriptor(context, metadata)
                     .use { d ->
-                        if (sample.load(d.fileDescriptor, d.mFileOffset, d.mFileSize)) {
+                        if (sample.load(d.fileDescriptor, d.fileOffset, d.fileSize)) {
                             if (!sample.isClosed) {
                                 sample.play(leftVolume, rightVolume, rate)
                             }
@@ -481,13 +481,14 @@ class SoundPoolCompat(
                             .use { descr ->
                                 isSuccess = sample.load(
                                     descr.fileDescriptor,
-                                    descr.mFileOffset,
-                                    descr.mFileSize
+                                    descr.fileOffset,
+                                    descr.fileSize
                                 )
                             }
                     } catch (e: Exception) {
                         e.printStackTrace()
                         errorMsg = e.message
+                        unload(sample.id)
                     }
                 }
 
