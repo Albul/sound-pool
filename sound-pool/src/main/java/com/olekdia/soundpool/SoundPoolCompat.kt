@@ -162,7 +162,19 @@ class SoundPoolCompat(
         ?: false
 
 
-    fun isPlaying(): Boolean = false // todo
+    fun isPlaying(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPlaying() ?: false
+
+    fun isPaused(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPaused() ?: false
+
+    fun isStopped(sampleId: Int): Boolean = samplePool.get(sampleId)?.isStopped() ?: true
+
+    fun isPlaying(): Boolean {
+        var isPlaying = false
+        for (i in 0 until samplePool.size()) {
+            isPlaying = isPlaying or isPlaying(samplePool.keyAt(i))
+        }
+        return isPlaying
+    }
 
     /**
      * Play a sound from a sample ID.
