@@ -74,7 +74,7 @@ class SoundPoolCompat(
     @Throws(IOException::class)
     @JvmOverloads
     fun load(
-        path: String,
+        path: String?,
         isStatic: Boolean = false
     ): Int = load(path, bufferSize, isStatic)
 
