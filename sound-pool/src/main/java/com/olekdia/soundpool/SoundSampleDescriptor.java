@@ -27,16 +27,16 @@ public class SoundSampleDescriptor implements Closeable {
         final Context context,
         final SoundSampleMetadata metadata
     ) throws FileNotFoundException {
-        if (metadata.mPath == null) {
+        if (metadata.getPath() == null) {
             mParcelDescr = null;
 
-            mAssetDescr = context.getResources().openRawResourceFd(metadata.mRawResId);
+            mAssetDescr = context.getResources().openRawResourceFd(metadata.getRawResId());
             mFileOffset = mAssetDescr.getStartOffset();
             mFileSize = mAssetDescr.getLength();
             mFd = mAssetDescr.getFileDescriptor();
-        } else if (FileExtensionsKt.isFileDocUri(metadata.mPath)) {
+        } else if (FileExtensionsKt.isFileDocUri(metadata.getPath())) {
             final ContentResolver cr = context.getContentResolver();
-            final Uri uri = Uri.parse(metadata.mPath);
+            final Uri uri = Uri.parse(metadata.getPath());
             mFileOffset = 0;
             mFileSize = FileExtensionsKt.getFileSize(uri, cr);
             mParcelDescr = cr.openFileDescriptor(uri, "r");
@@ -44,7 +44,7 @@ public class SoundSampleDescriptor implements Closeable {
         } else {
             mAssetDescr = null;
 
-            final File file = new File(metadata.mPath);
+            final File file = new File(metadata.getPath());
             mParcelDescr = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
             mFileOffset = 0;
             mFileSize = file.length();
