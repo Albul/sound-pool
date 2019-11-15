@@ -2,7 +2,7 @@ package com.olekdia.soundpool
 
 import android.content.Context
 import android.os.*
-import com.olekdia.androidcollection.IntKeySparseArray
+import androidx.collection.SparseArrayCompat
 import com.olekdia.androidcommon.INVALID
 import com.olekdia.androidcommon.NO_RESOURCE
 import java.io.IOException
@@ -21,7 +21,7 @@ class SoundPoolCompat(
      */
     var bufferSize: Int
 ) {
-    private val samplePool: IntKeySparseArray<SoundSample> = IntKeySparseArray(maxSamples)
+    private val samplePool: SparseArrayCompat<SoundSample> = SparseArrayCompat(maxSamples)
     private var eventHandler: EventHandler? = null
     private val loadHandlerThread: Handler
     private val playThreadPool: ThreadPoolExecutor = ThreadPoolExecutor(
