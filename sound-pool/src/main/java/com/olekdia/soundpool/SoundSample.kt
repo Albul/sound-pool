@@ -308,6 +308,8 @@ class SoundSample(
         mediaFormat = null
     }
 
+    fun isLoaded(): Boolean = audioTrack != null
+
     fun isPlaying(): Boolean = audioTrack?.playState == PLAYSTATE_PLAYING
 
     fun isPaused(): Boolean = audioTrack?.playState == PLAYSTATE_PAUSED

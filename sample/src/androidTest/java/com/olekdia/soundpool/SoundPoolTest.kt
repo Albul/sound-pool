@@ -47,12 +47,23 @@ class SoundPoolTest {
 
         val pool = createSoundPool()
 
+        val idleRes = ExecutorTestRule(pool.playThreadPool)
+
+
+
 //        val threadShadow: ShadowLooper = shadowOf(pool.loadHandlerThread.looper)
+        idleRes.before()
         val soundId: Int = pool.load(resourceId)
+        while (!pool.loadHandlerThread.looper.queue.isIdle) {
+            Thread.sleep(10)
+        }
+
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         Espresso.onIdle()
 //        threadShadow.runOneTask()
+
         assertTrue(pool.isLoaded(soundId))
+        idleRes.after()
 
 
 //        ShadowLooper.pauseMainLooper()
@@ -97,4 +108,6 @@ class SoundPoolTest {
     }
 
     */
+
 }
+

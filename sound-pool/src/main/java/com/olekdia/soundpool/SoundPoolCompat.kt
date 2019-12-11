@@ -162,6 +162,8 @@ class SoundPoolCompat(
         ?: false
 
 
+    fun isLoaded(sampleId: Int): Boolean = samplePool.get(sampleId)?.isLoaded() ?: false
+
     fun isPlaying(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPlaying() ?: false
 
     fun isPaused(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPaused() ?: false
