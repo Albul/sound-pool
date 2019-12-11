@@ -157,7 +157,6 @@ class SoundSample(
                 return
             }
 
-            val codecInputBuffers: Array<ByteBuffer> = codec.inputBuffers
             val bufInfo = MediaCodec.BufferInfo()
             val waitTimeout: Long = 1000 // 0
             var sawInputEOS = false
@@ -171,7 +170,7 @@ class SoundSample(
                 if (!sawInputEOS) {
                     val inputBufIndex: Int = codec.dequeueInputBuffer(waitTimeout)
                     if (inputBufIndex >= 0) {
-                        val inputBuffer: ByteBuffer = codecInputBuffers[inputBufIndex]
+                        val inputBuffer: ByteBuffer = codec.inputBuffers[inputBufIndex]
                         var sampleSize: Int = extractor.readSampleData(inputBuffer, 0)
                         var sampleTime: Long = 0L
 
