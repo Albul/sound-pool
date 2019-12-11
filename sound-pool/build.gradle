@@ -27,7 +27,6 @@ android {
 	}
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
-        main.java.srcDirs += 'src/test/kotlin'
     }
 }
 
@@ -40,4 +39,5 @@ apply from: '../bintray.gradle'
 dependencies {
     implementation "com.olekdia:android-common:$rootProject.olekdiaLibraryVersion"
     implementation "androidx.collection:collection:1.1.0"
-	implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
+}
