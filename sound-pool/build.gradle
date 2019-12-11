@@ -25,65 +25,19 @@ android {
 		sourceCompatibility JavaVersion.VERSION_1_8
 		targetCompatibility JavaVersion.VERSION_1_8
 	}
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += 'src/test/kotlin'
+    }
 }
 
 tasks.withType(Javadoc).all {
     enabled = false
 }
 
-apply plugin: 'com.jfrog.bintray'
-
-if (project.hasProperty("android")) {
-    apply plugin: 'com.github.dcendents.android-maven'
-}
-
-group = publishedGroupId
-def bintrayUser = ''
-def bintrayApiKey = ''
-def bintrayPassword = ''
-// Bintray
-if (project.rootProject.file('local.properties').exists()) {
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    bintrayUser = properties.getProperty("bintray.user")
-    bintrayApiKey = properties.getProperty("bintray.apikey")
-    bintrayPassword = properties.getProperty("bintray.gpg.password")
-} else {
-    bintrayUser = defaultBintrayUser
-    bintrayApiKey = defaultBintrayApiKey
-    bintrayPassword = defaultBintrayPassword
-}
-
-bintray {
-    user = bintrayUser
-    key = bintrayApiKey
-    publications = ['MyPublication']
-    configurations = ['archives']
-    pkg {
-        repo = bintrayRepo
-        name = bintrayName
-        userOrg = developerOrg
-        desc = libraryDescription
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = allLicenses
-        publish = true
-        publicDownloadNumbers = true
-        version {
-            desc = libraryDescription
-            gpg {
-                sign = true //Determines whether to GPG sign the files. The default is false
-                passphrase = bintrayPassword
-                //Optional. The passphrase for GPG signing'
-            }
-        }
-    }
-}
-
-apply from: 'https://raw.githubusercontent.com/kostasdrakonakis/maven-upload/master/publications.gradle'
+apply from: '../bintray.gradle'
 
 dependencies {
     implementation "com.olekdia:android-common:$rootProject.olekdiaLibraryVersion"
     implementation "androidx.collection:collection:1.1.0"
 	implementation 'androidx.annotation:annotation:1.1.0'
-}
