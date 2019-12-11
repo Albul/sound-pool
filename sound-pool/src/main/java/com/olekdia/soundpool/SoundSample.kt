@@ -6,6 +6,8 @@ import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import com.olekdia.androidcommon.extensions.buildAudioTrack
+import com.olekdia.androidcommon.extensions.getInputBufferCompat
+import com.olekdia.androidcommon.extensions.getOutputBufferCompat
 import com.olekdia.androidcommon.extensions.ifNotNull
 import java.io.Closeable
 import java.io.FileDescriptor
@@ -158,7 +160,7 @@ class SoundSample(
             }
 
             val bufInfo = MediaCodec.BufferInfo()
-            val waitTimeout: Long = 1000 // 0
+            val waitTimeout: Long = 1000 // microseconds to wait before get buffer
             var sawInputEOS = false
             var sawOutputEOS = false
 
@@ -170,7 +172,7 @@ class SoundSample(
                 if (!sawInputEOS) {
                     val inputBufIndex: Int = codec.dequeueInputBuffer(waitTimeout)
                     if (inputBufIndex >= 0) {
-                        val inputBuffer: ByteBuffer = codec.inputBuffers[inputBufIndex]
+                        val inputBuffer: ByteBuffer = codec.getInputBufferCompat(inputBufIndex) ?: continue
                         var sampleSize: Int = extractor.readSampleData(inputBuffer, 0)
                         var sampleTime: Long = 0L
 
@@ -195,7 +197,7 @@ class SoundSample(
 
                 val outputBufIndex: Int = codec.dequeueOutputBuffer(bufInfo, waitTimeout)
                 if (outputBufIndex >= 0) {
-                    val outputBuffer: ByteBuffer = codec.outputBuffers[outputBufIndex]
+                    val outputBuffer: ByteBuffer = codec.getOutputBufferCompat(outputBufIndex) ?: continue
 
                     if (isFromStart) {
                         checkBufferSize(bufInfo.size)
@@ -230,10 +232,12 @@ class SoundSample(
             }
 
             if (isFullyLoaded) {
+                // If fully loaded, we no longer need the codec
                 stopCodec()
                 releaseCodec()
             } else {
                 audioTrack?.let { track ->
+                    // todo bug after pause > stop
                     if (!isFromStart
                         && track.playState != PLAYSTATE_PAUSED
                     ) {
@@ -249,7 +253,6 @@ class SoundSample(
                         }
                     }
                 }
-
             }
         }
     }
