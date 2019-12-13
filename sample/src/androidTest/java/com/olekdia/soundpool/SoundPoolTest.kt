@@ -2,7 +2,6 @@ package com.olekdia.soundpool
 
 import android.content.Context
 import androidx.test.espresso.Espresso
-import androidx.test.espresso.IdlingRegistry
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import com.olekdia.sample.MainActivity
@@ -43,57 +42,19 @@ class SoundPoolTest {
 
     @Test
     fun loadSound_play_properState() {
-        val loadIdle = LoadIdlingResource()
-        IdlingRegistry.getInstance().register(loadIdle)
-
         val resourceId = getResource("bg_sea_retain")
-
         val pool = createSoundPool()
-        pool.setOnLoadCompleteListener(object : SoundPoolCompat.OnLoadCompleteListener {
-            override fun onLoadComplete(
-                soundPool: SoundPoolCompat,
-                sampleId: Int,
-                isSuccess: Boolean,
-                errorMsg: String?
-            ) {
-                loadIdle.setIdleState(true)
-            }
-        })
 
-        loadIdle.setIdleState(false)
+        val loadIdle = LoadIdlingResource(pool)
+
         val soundId: Int = pool.load(resourceId)
 
         Espresso.onIdle()
         assertTrue(pool.isLoaded(soundId))
 
-        IdlingRegistry.getInstance().unregister(loadIdle)
-
-
-
-        //val idleRes = ExecutorTestRule(pool.playThreadPool)
-
-//        val threadShadow: ShadowLooper = shadowOf(pool.loadHandlerThread.looper)
-//        idleRes.before()
-//        while (!pool.loadHandlerThread.looper.queue.isIdle) {
-//            Thread.sleep(10)
-//        }
-
-//        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
-//        Espresso.onIdle()
-//        threadShadow.runOneTask()
-
-//        assertTrue(pool.isLoaded(soundId))
-//        idleRes.after()
-
-
-//        ShadowLooper.pauseMainLooper()
-//        pool.play(soundId)
-//        threadShadow.runOneTask()
-//        ShadowLooper.runMainLooperOneTask()
-//        Espresso.onIdle()
-//        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
-//
-//        assertTrue(pool.isPlaying(soundId))
+        pool.play(soundId, 5F, 5F, -1, 1F)
+        Thread.sleep(1000 * 5)                                                                //todo wait when start playing
+        assertTrue(pool.isPlaying(soundId))
     }
 
 
