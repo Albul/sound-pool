@@ -189,7 +189,6 @@ class SoundPoolTest {
         do {
             Thread.sleep(1000)
         } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
         assertTrue(pool.isPlaying(soundId))
 
         pool.pause(soundId)
@@ -207,7 +206,6 @@ class SoundPoolTest {
         do {
             Thread.sleep(1000)
         } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
         assertTrue(pool.isPlaying(soundId))
     }
 
