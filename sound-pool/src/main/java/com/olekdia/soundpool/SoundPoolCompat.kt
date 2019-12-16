@@ -24,7 +24,7 @@ class SoundPoolCompat(
     private val samplePool: SparseArrayCompat<SoundSample> = SparseArrayCompat(maxSamples)
     private var eventHandler: EventHandler? = null
     private val loadHandlerThread: Handler
-    private val playThreadPool: ThreadPoolExecutor = ThreadPoolExecutor(
+    val playThreadPool: ThreadPoolExecutor = ThreadPoolExecutor(
         4,
         8,
         2,

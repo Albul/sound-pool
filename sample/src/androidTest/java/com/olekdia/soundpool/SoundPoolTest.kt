@@ -9,8 +9,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-//import org.robolectric.Shadows.shadowOf
-//import org.robolectric.shadows.ShadowLooper
 
 @LargeTest
 class SoundPoolTest {
@@ -32,7 +30,6 @@ class SoundPoolTest {
     @Test
     fun loadSound_stopImmediately() {
         val resourceId = getResource("bg_sea_retain")
-
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(resourceId)
@@ -53,42 +50,44 @@ class SoundPoolTest {
         assertTrue(pool.isLoaded(soundId))
 
         pool.play(soundId, 5F, 5F, -1, 1F)
-        Thread.sleep(1000 * 5)                                                                //todo wait when start playing
+        do {
+            Thread.sleep(1000)
+        } while (pool.playThreadPool.activeCount < 1)
         assertTrue(pool.isPlaying(soundId))
     }
 
 
-/*    @Test
+    @Test
     fun loadSound_pauseImmediately() {
         val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
 
-        val soundId: Int = soundPool.load(resourceId)
+        val soundId: Int = pool.load(resourceId)
         Thread.sleep(10)
-        soundPool.pause(soundId)
+        pool.pause(soundId)
     }
 
     @Test
     fun loadSound_pauseStopImmediately() {
         val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
 
-        val soundId: Int = soundPool.load(resourceId)
+        val soundId: Int = pool.load(resourceId)
         Thread.sleep(10)
-        soundPool.pause(soundId)
-        soundPool.stop(soundId)
+        pool.pause(soundId)
+        pool.stop(soundId)
     }
 
     @Test
     fun loadSound_stopPauseImmediately() {
         val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
 
-        val soundId: Int = soundPool.load(resourceId)
+        val soundId: Int = pool.load(resourceId)
         Thread.sleep(10)
-        soundPool.stop(soundId)
-        soundPool.pause(soundId)
-        assertTrue(soundPool.isStopped(soundId))
+        pool.stop(soundId)
+        pool.pause(soundId)
+        assertTrue(pool.isStopped(soundId))
     }
-
-    */
-
 }
 
