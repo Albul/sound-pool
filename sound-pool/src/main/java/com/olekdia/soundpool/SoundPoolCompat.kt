@@ -213,6 +213,11 @@ class SoundPoolCompat(
         }
         ?: INVALID
 
+    fun play(
+        sampleId: Int,
+        loop: Int
+    ): Int = play(sampleId, 1.0f, 1.0f, loop)
+
     /**
      * Similar to #play(), but for track that weren't preloaded.
      * All audio data will be loaded before playing.
