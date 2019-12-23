@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.olekdia.sample"
-        minSdkVersion rootProject.minSdkVersion
+        minSdkVersion 18
         targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -40,6 +40,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation project(':sound-pool')
 
+    androidTestImplementation "com.olekdia:android-common-test:$rootProject.olekdiaLibraryVersion"
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:rules:1.2.0'
     androidTestImplementation 'androidx.test:runner:1.2.0'

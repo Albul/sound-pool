@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.test.espresso.Espresso
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
+import com.olekdia.androidcommontest.ActivityFinisher
 import com.olekdia.sample.MainActivity
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,6 +44,7 @@ class SoundPoolTest {
             Thread.sleep(1000)
         } while (pool.playThreadPool.activeCount < 1)
         assertTrue(pool.isPlaying(soundId))
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -70,6 +73,7 @@ class SoundPoolTest {
         } while (pool.playThreadPool.activeCount < 1)
         assertFalse(pool.isPaused(soundId))
         assertTrue(pool.isPlaying(soundId))
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -98,6 +102,8 @@ class SoundPoolTest {
         } while (pool.playThreadPool.activeCount < 1)
         assertFalse(pool.isPaused(soundId))
         assertTrue(pool.isPlaying(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -126,6 +132,8 @@ class SoundPoolTest {
         } while (pool.playThreadPool.activeCount < 1)
         assertFalse(pool.isStopped(soundId))
         assertTrue(pool.isPlaying(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -152,6 +160,8 @@ class SoundPoolTest {
         Thread.sleep(1000)
         assertTrue(pool.isStopped(soundId))
         assertFalse(pool.isPlaying(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -173,9 +183,11 @@ class SoundPoolTest {
         pool.unload(soundId)
         assertFalse(pool.isPlaying(soundId))
         assertFalse(pool.isLoaded(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
-    @Test
+    @Test // todo
     fun loadSound_play_pause_stop_startPlayingFromTheBeginning() {
         val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
@@ -189,7 +201,7 @@ class SoundPoolTest {
         do {
             Thread.sleep(1000)
         } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
+        Thread.sleep(10000)
         assertTrue(pool.isPlaying(soundId))
 
         pool.pause(soundId)
@@ -207,8 +219,10 @@ class SoundPoolTest {
         do {
             Thread.sleep(1000)
         } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
+        Thread.sleep(10000)
         assertTrue(pool.isPlaying(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -219,6 +233,8 @@ class SoundPoolTest {
         val soundId: Int = pool.load(resourceId)
         Thread.sleep(10)
         pool.stop(soundId)
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -229,6 +245,8 @@ class SoundPoolTest {
         val soundId: Int = pool.load(resourceId)
         Thread.sleep(10)
         pool.pause(soundId)
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -237,9 +255,12 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(resourceId)
-        Thread.sleep(10)
         pool.pause(soundId)
         pool.stop(soundId)
+
+        assertFalse(pool.isLoaded(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -248,10 +269,10 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(resourceId)
-        Thread.sleep(10)
         pool.stop(soundId)
         pool.pause(soundId)
-        assertTrue(pool.isStopped(soundId))
+        assertFalse(pool.isLoaded(soundId))
+
+        ActivityFinisher.finishOpenActivities()
     }
 }
-
