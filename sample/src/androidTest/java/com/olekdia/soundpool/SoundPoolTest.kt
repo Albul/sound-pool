@@ -34,13 +34,10 @@ class SoundPoolTest {
 
     private fun SoundPoolCompat.playAndWait(
         sampleId: Int,
-        leftVolume: Float = 1.0f,
-        rightVolume: Float = 1.0f,
-        loop: Int = 0,
-        rate: Float = 1.0f
+        loop: Int = 0
     ): Int {
         PlayIdlingResource(this)
-        return this.play(sampleId, leftVolume, rightVolume, loop, rate)
+        return this.play(sampleId, loop)
             .also { Espresso.onIdle() }
     }
 
@@ -121,7 +118,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
@@ -137,7 +134,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.pause(soundId)
@@ -161,14 +158,14 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.pause(soundId)
         assertFalse(pool.isPlaying(soundId))
         assertTrue(pool.isPaused(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertFalse(pool.isPaused(soundId))
         assertTrue(pool.isPlaying(soundId))
 
@@ -185,14 +182,14 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
         assertFalse(pool.isPlaying(soundId))
         assertTrue(pool.isStopped(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertFalse(pool.isStopped(soundId))
         assertTrue(pool.isPlaying(soundId))
 
@@ -209,7 +206,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
@@ -234,7 +231,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.unload(soundId)
@@ -254,7 +251,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F, -1, 1F)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.pause(soundId)
@@ -268,7 +265,7 @@ class SoundPoolTest {
         assertTrue(pool.isStopped(soundId))
         //assertFalse(pool.samplePool.get(soundId)?.pausedPlaybackInBytes ?: 0 > 0)
 
-        pool.playAndWait(soundId, 5F, 5F, -1, 1F)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
@@ -284,7 +281,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5f, 5f, -1)
+        pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         Thread.sleep(8000)
@@ -297,6 +294,56 @@ class SoundPoolTest {
     }
 
     @Test
+    fun loadSound2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
+        val resource1Id = getResource("bg_sunrise_inhale")
+        val resource2Id = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val sound1Id: Int = pool.loadAndWait(resource1Id)
+        assertTrue(pool.isLoaded(sound1Id))
+
+        val sound2Id: Int = pool.loadAndWait(resource2Id)
+        assertTrue(pool.isLoaded(sound2Id))
+
+        pool.playAndWait(sound1Id, -1)
+        assertTrue(pool.isPlaying(sound1Id))
+
+        Thread.sleep(4000)
+        pool.pause(sound1Id)
+        assertTrue(pool.isPaused(sound1Id))
+        assertFalse(pool.isPlaying(sound1Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound2Id, -1)
+        assertTrue(pool.isPlaying(sound2Id))
+        Thread.sleep(4000)
+        pool.stop(sound2Id)
+        assertTrue(pool.isStopped(sound2Id))
+        assertFalse(pool.isPlaying(sound2Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound1Id, -1)
+        assertTrue(pool.isPlaying(sound1Id))
+        Thread.sleep(4000)
+        pool.pause(sound1Id)
+        assertTrue(pool.isPaused(sound1Id))
+        assertFalse(pool.isPlaying(sound1Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound2Id, -1)
+        assertTrue(pool.isPlaying(sound2Id))
+
+        pool.stop(sound1Id)
+        pool.stop(sound2Id)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+//--------------------------------------------------------------------------------------------------
+//  Non loop sounds
+//--------------------------------------------------------------------------------------------------
+
+    @Test
     fun loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
         val resourceId = getResource("sec_tick_cricket")
         val pool = createSoundPool()
@@ -304,7 +351,7 @@ class SoundPoolTest {
         val soundId: Int = pool.loadAndWait(resourceId)
         assertTrue(pool.isLoaded(soundId))
 
-        pool.playAndWait(soundId, 5F, 5F)
+        pool.playAndWait(soundId, 0)
         assertTrue(pool.isPlaying(soundId))
 
         Thread.sleep(1500)
