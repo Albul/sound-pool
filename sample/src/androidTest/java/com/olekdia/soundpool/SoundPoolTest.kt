@@ -5,6 +5,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import com.olekdia.androidcommontest.ActivityFinisher
+import com.olekdia.androidcommontest.delayShortToResume
 import com.olekdia.sample.MainActivity
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -25,204 +26,32 @@ class SoundPoolTest {
     private fun getResource(name: String): Int =
         context.resources.getIdentifier(name, "raw", context.packageName)
 
+    private fun SoundPoolCompat.loadAndWait(resourceId: Int): Int {
+        LoadIdlingResource(this)
+        return this.load(resourceId)
+            .also { Espresso.onIdle() }
+    }
+
+    private fun SoundPoolCompat.playAndWait(
+        sampleId: Int,
+        leftVolume: Float = 1.0f,
+        rightVolume: Float = 1.0f,
+        loop: Int = 0,
+        rate: Float = 1.0f
+    ): Int {
+        PlayIdlingResource(this)
+        return this.play(sampleId, leftVolume, rightVolume, loop, rate)
+            .also { Espresso.onIdle() }
+    }
+
+    private fun SoundPoolCompat.resumeAndWait(sampleId: Int) {
+        PlayIdlingResource(this)
+        this.resume(sampleId)
+            .also { Espresso.onIdle() }
+    }
+
     @Before
     fun setUp() {
-    }
-
-    @Test
-    fun loadSound_play_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test
-    fun loadSound_play_pause_resume_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.pause(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertTrue(pool.isPaused(soundId))
-
-        pool.resume(soundId)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertFalse(pool.isPaused(soundId))
-        assertTrue(pool.isPlaying(soundId))
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test
-    fun loadSound_play_pause_play_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.pause(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertTrue(pool.isPaused(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertFalse(pool.isPaused(soundId))
-        assertTrue(pool.isPlaying(soundId))
-
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test
-    fun loadSound_play_stop_play_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.stop(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertTrue(pool.isStopped(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertFalse(pool.isStopped(soundId))
-        assertTrue(pool.isPlaying(soundId))
-
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test
-    fun loadSound_play_stop_resume_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.stop(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertTrue(pool.isStopped(soundId))
-
-        pool.resume(soundId)
-        Thread.sleep(1000)
-        assertTrue(pool.isStopped(soundId))
-        assertFalse(pool.isPlaying(soundId))
-
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test
-    fun loadSound_play_unload_properState() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.unload(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertFalse(pool.isLoaded(soundId))
-
-        ActivityFinisher.finishOpenActivities()
-    }
-
-    @Test // todo
-    fun loadSound_play_pause_stop_startPlayingFromTheBeginning() {
-        val resourceId = getResource("bg_sea_retain")
-        val pool = createSoundPool()
-
-        val loadIdle = LoadIdlingResource(pool)
-        val soundId: Int = pool.load(resourceId)
-        Espresso.onIdle()
-        assertTrue(pool.isLoaded(soundId))
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
-        assertTrue(pool.isPlaying(soundId))
-
-        pool.pause(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertTrue(pool.isPaused(soundId))
-        //assertTrue(pool.samplePool.get(soundId)?.pausedPlaybackInBytes ?: 0 > 0)
-
-        pool.stop(soundId)
-        assertFalse(pool.isPlaying(soundId))
-        assertFalse(pool.isPaused(soundId))
-        assertTrue(pool.isStopped(soundId))
-        //assertFalse(pool.samplePool.get(soundId)?.pausedPlaybackInBytes ?: 0 > 0)
-
-        pool.play(soundId, 5F, 5F, -1, 1F)
-        do {
-            Thread.sleep(1000)
-        } while (pool.playThreadPool.activeCount < 1)
-        Thread.sleep(20000)
-        assertTrue(pool.isPlaying(soundId))
-
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
@@ -231,9 +60,10 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(resourceId)
-        Thread.sleep(10)
         pool.stop(soundId)
+        assertFalse(pool.isLoaded(soundId))
 
+        delayShortToResume()
         ActivityFinisher.finishOpenActivities()
     }
 
@@ -243,9 +73,10 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(resourceId)
-        Thread.sleep(10)
         pool.pause(soundId)
+        assertFalse(pool.isLoaded(soundId))
 
+        delayShortToResume()
         ActivityFinisher.finishOpenActivities()
     }
 
@@ -260,6 +91,7 @@ class SoundPoolTest {
 
         assertFalse(pool.isLoaded(soundId))
 
+        delayShortToResume()
         ActivityFinisher.finishOpenActivities()
     }
 
@@ -273,6 +105,214 @@ class SoundPoolTest {
         pool.pause(soundId)
         assertFalse(pool.isLoaded(soundId))
 
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+//--------------------------------------------------------------------------------------------------
+//  Loop sounds
+//--------------------------------------------------------------------------------------------------
+
+    @Test
+    fun loadSound_playLoop_sampleIsPlaying() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_pause_resume_sampleIsPlaying() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.pause(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isPaused(soundId))
+
+        pool.resumeAndWait(soundId)
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_pause_playLoop_sampleIsPlaying() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.pause(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isPaused(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_stop_playLoop_sampleIsPlaying() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertFalse(pool.isStopped(soundId))
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_stop_resume_sampleIsStopped() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.resume(soundId)
+        Thread.sleep(1000)
+        assertTrue(pool.isStopped(soundId))
+        assertFalse(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_unload_sampleIsUnloadedAndNotPlaying() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.unload(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isLoaded(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test // todo
+    fun loadSound_playLoop_pause_stop_playLoop_sampleIsStartedFromTheBeginning() {
+        val resourceId = getResource("bg_sea_retain")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F, -1, 1F)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.pause(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isPaused(soundId))
+        //assertTrue(pool.samplePool.get(soundId)?.pausedPlaybackInBytes ?: 0 > 0)
+
+        pool.stop(soundId)
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+        //assertFalse(pool.samplePool.get(soundId)?.pausedPlaybackInBytes ?: 0 > 0)
+
+        pool.playAndWait(soundId, 5F, 5F, -1, 1F)
+        assertTrue(pool.isPlaying(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playLoop_wait3xOfLength_trackIsStillPlaying() {
+        val resourceId = getResource("sec_tick_cricket")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5f, 5f, -1)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(8000)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
+        ActivityFinisher.finishOpenActivities()
+    }
+
+    @Test
+    fun loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
+        val resourceId = getResource("sec_tick_cricket")
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.loadAndWait(resourceId)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 5F, 5F)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(1500)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+        delayShortToResume()
         ActivityFinisher.finishOpenActivities()
     }
 }

@@ -4,21 +4,15 @@ import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
 import java.util.concurrent.atomic.AtomicBoolean
 
-class LoadIdlingResource : IdlingResource {
+class LoadIdlingResource(pool: SoundPoolCompat) : IdlingResource {
 
     @Volatile
     private var callback: IdlingResource.ResourceCallback? = null
 
     private val isIdleNow = AtomicBoolean(true)
 
-    private var soundPool: SoundPoolCompat? = null
-
-    constructor(pool: SoundPoolCompat) {
-        if (soundPool == null) {
-            soundPool = pool
-        }
-
-        soundPool?.setOnLoadCompleteListener(
+    init {
+        pool.setOnLoadCompleteListener(
             object : SoundPoolCompat.OnLoadCompleteListener {
                 override fun onLoadComplete(
                     soundPool: SoundPoolCompat,
@@ -31,7 +25,6 @@ class LoadIdlingResource : IdlingResource {
                 }
             }
         )
-
         setIdleState(false)
         IdlingRegistry.getInstance().register(this)
     }

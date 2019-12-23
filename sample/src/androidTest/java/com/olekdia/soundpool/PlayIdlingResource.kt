@@ -1,30 +1,34 @@
 package com.olekdia.soundpool
 
+import android.os.Handler
+import android.os.Looper
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicBoolean
 
-class PlayIdlingResource : IdlingResource {
+class PlayIdlingResource(private val pool: SoundPoolCompat) : IdlingResource, Runnable {
 
     @Volatile
     private var callback: IdlingResource.ResourceCallback? = null
 
     private val isIdleNow = AtomicBoolean(true)
+    private val handler = Handler(Looper.getMainLooper())
+    private var initActivePlaying: Int = pool.playThreadPool.activeCount
 
-    private var workerExecutor: ThreadPoolExecutor? = null
-
-    constructor(executor: ThreadPoolExecutor) {
-        if (workerExecutor == null) {
-            workerExecutor = executor
-        }
-
-        //todo add callback
-//        setIdleState(true)
-//        IdlingRegistry.getInstance().unregister(this@PlayIdlingResource)
-
+    init {
         setIdleState(false)
         IdlingRegistry.getInstance().register(this)
+
+        run()
+    }
+
+    override fun run() {
+        if (pool.playThreadPool.activeCount - initActivePlaying == 1) {
+            setIdleState(true)
+            IdlingRegistry.getInstance().unregister(this)
+        } else {
+            handler.postDelayed(this, 100)
+        }
     }
 
     override fun getName(): String {
