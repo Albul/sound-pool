@@ -199,12 +199,13 @@ class SoundPoolCompat(
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
      * @return the same sampleId or -1 if there is no such sample
      */
+    @JvmOverloads
     fun play(
         sampleId: Int,
-        leftVolume: Float,
-        rightVolume: Float,
-        loop: Int,
-        rate: Float
+        leftVolume: Float = 1.0f,
+        rightVolume: Float = 1.0f,
+        loop: Int = 0,
+        rate: Float = 1.0f
     ): Int = samplePool.get(sampleId)
         ?.let { sample ->
             sample.play(leftVolume, rightVolume, loop, rate, playThreadPool)
