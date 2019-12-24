@@ -2,20 +2,26 @@ package com.olekdia.soundpool
 
 import android.media.*
 import android.media.AudioTrack.*
+import android.os.Build
 import androidx.annotation.AnyThread
+import androidx.annotation.IntDef
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import com.olekdia.androidcommon.extensions.buildAudioTrack
 import com.olekdia.androidcommon.extensions.getInputBufferCompat
 import com.olekdia.androidcommon.extensions.getOutputBufferCompat
 import com.olekdia.androidcommon.extensions.ifNotNull
+import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.CONFIGURED
+import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.ERROR
+import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.EXECUTING
+import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.RELEASED
+import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.UNINITIALIZED
 import java.io.Closeable
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.atomic.AtomicBoolean
 
 class SoundSample(
     val id: Int,
@@ -33,6 +39,7 @@ class SoundSample(
     private var extractor: MediaExtractor? = null
     private var codec: MediaCodec? = null
     private var mediaFormat: MediaFormat? = null
+    private var mime: String? = null
 
     // true - if all sound data loaded to audioBuffer buffer, false - otherwise.
     private var isFullyLoaded = true
@@ -45,16 +52,16 @@ class SoundSample(
     private var currRightVolume = -1F
     private var currRate = -1F
 
-    // Bug fix flag. On early androids api 16 - 18 the bug occurs when call codec.stop(),
-    // and then reconfigure it and start it again before reaching eof
+    @CodecState
     @Volatile
-    private var isCodecStarted: Boolean = false
-    private val _isClosed: AtomicBoolean = AtomicBoolean(false)
+    private var codecState: Int = UNINITIALIZED
+    @Volatile
+    private var _isClosed: Boolean = false
 
     var isClosed: Boolean
-        get() = _isClosed.get()
+        get() = _isClosed
         private set(value) {
-            _isClosed.set(value)
+            _isClosed = value
         }
 
     @WorkerThread
@@ -68,11 +75,11 @@ class SoundSample(
             audioBuffer = if (isStatic) {
                 ByteArray(fileSize.toInt() * 12)
             } else {
-                ByteArray(bufferMaxSize + 1024 * 1024)
+                ByteArray(bufferMaxSize * 14)
             }
 
             mediaFormat = null
-            var rawMime: String? = null
+            var mime: String? = null
             var channels: Int = 1
             var sampleRate: Int = 44100
 
@@ -82,7 +89,7 @@ class SoundSample(
                         it.setDataSource(fd, fileOffset, fileSize)
                         mediaFormat = it.getTrackFormat(0)
                             ?.apply {
-                                rawMime = getString(MediaFormat.KEY_MIME)
+                                mime = getString(MediaFormat.KEY_MIME)
                                 sampleRate = getInteger(MediaFormat.KEY_SAMPLE_RATE)
                                 channels = getInteger(MediaFormat.KEY_CHANNEL_COUNT)
                             }
@@ -91,27 +98,23 @@ class SoundSample(
                     }
                 }
 
-            val mime: String? = rawMime
-            if (mediaFormat == null
-                || mime == null
-                || !mime.startsWith("audio/")
-            ) {
-                return false.also { close() }
+            this.mime = mime?.let {
+                if (mediaFormat != null
+                    && it.startsWith("audio/")
+                ) {
+                    it
+                } else {
+                    null
+                }
             }
 
-            try {
-                codec = MediaCodec.createDecoderByType(mime)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            if (codec == null) {
-                return false.also { close() }
-            }
+            createCodec()
+            if (codec == null) return false.also { close() }
 
             extractor?.selectTrack(0)
             loadNextSamples(true)
 
-            if (isClosed) return false
+            if (_isClosed) return false
 
             val channelConfiguration: Int = if (channels == 1) {
                 AudioFormat.CHANNEL_OUT_MONO
@@ -151,103 +154,110 @@ class SoundSample(
         return true
     }
 
+    // Inside codecLock
     @WorkerThread
     private fun loadNextSamples(isFromStart: Boolean) {
         ifNotNull(
             codec, extractor
         ) { codec, extractor ->
-            startCodec()
-            if (!isCodecStarted) {
-                releaseCodec()
-                return
-            }
+            if (!startCodec()) return
 
             val bufInfo = MediaCodec.BufferInfo()
             val waitTimeout: Long = 1000 // microseconds to wait before get buffer
             var sawInputEOS = false
             var sawOutputEOS = false
 
-            while (!sawOutputEOS) {
-                if (isClosed) return
+            try {
+                while (!sawOutputEOS) {
+                    if (_isClosed) return
 
-                if (!sawInputEOS) {
-                    val inputBufIndex: Int = codec.dequeueInputBuffer(waitTimeout)
-                    if (inputBufIndex >= 0) {
-                        val inputBuffer: ByteBuffer = codec.getInputBufferCompat(inputBufIndex) ?: continue
-                        var sampleSize: Int = extractor.readSampleData(inputBuffer, 0)
-                        var sampleTime: Long = 0L
+                    if (!sawInputEOS) {
+                        val inputBufIndex: Int = codec.dequeueInputBuffer(waitTimeout)
+                        if (inputBufIndex >= 0) {
+                            val inputBuffer: ByteBuffer =
+                                codec.getInputBufferCompat(inputBufIndex) ?: continue
+                            var sampleSize: Int = extractor.readSampleData(inputBuffer, 0)
+                            var sampleTime: Long = 0L
 
-                        if (sampleSize <= 0) {
-                            sawInputEOS = true
-                            sampleSize = 0
-                        } else {
-                            sampleTime = extractor.sampleTime
+                            if (sampleSize <= 0) {
+                                sawInputEOS = true
+                                sampleSize = 0
+                            } else {
+                                sampleTime = extractor.sampleTime
+                            }
+
+                            codec.queueInputBuffer(
+                                inputBufIndex,
+                                0,
+                                sampleSize,
+                                sampleTime,
+                                if (sawInputEOS) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0
+                            )
+
+                            if (!sawInputEOS) extractor.advance()
                         }
-
-                        codec.queueInputBuffer(
-                            inputBufIndex,
-                            0,
-                            sampleSize,
-                            sampleTime,
-                            if (sawInputEOS) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0
-                        )
-
-                        if (!sawInputEOS) extractor.advance()
                     }
-                }
 
-                val outputBufIndex: Int = codec.dequeueOutputBuffer(bufInfo, waitTimeout)
-                if (outputBufIndex >= 0) {
-                    val outputBuffer: ByteBuffer = codec.getOutputBufferCompat(outputBufIndex) ?: continue
+                    val outputBufIndex: Int = codec.dequeueOutputBuffer(bufInfo, waitTimeout)
+                    if (outputBufIndex >= 0) {
+                        val outputBuffer: ByteBuffer =
+                            codec.getOutputBufferCompat(outputBufIndex) ?: continue
 
-                    if (isFromStart) {
-                        checkBufferSize(bufInfo.size)
-                        audioBuffer?.let{ outputBuffer.get(it, bufferSize, bufInfo.size) }
-                        bufferSize += bufInfo.size
-                        if (bufferSize > bufferMaxSize) {
-                            sawOutputEOS = true
-                            isFullyLoaded = false
-                        }
-                    } else {
-                        if (!isClosed) {
-                            val chunk = ByteArray(bufInfo.size)
-                            outputBuffer.get(chunk)
-
-                            audioTrack.let { track ->
-                                if (track?.playState == PLAYSTATE_PLAYING) {
-                                    track.write(chunk, 0, chunk.size)
-                                    if (isStatic) {
-                                        checkBufferSize(chunk.size)
-                                        audioBuffer?.let {
-                                            System.arraycopy(chunk, 0, it, bufferSize, chunk.size)
-                                        }
-                                        bufferSize += chunk.size
-                                    }
-                                } else {
-                                    sawOutputEOS = true
-                                }
+                        if (isFromStart) {
+                            checkBufferSize(bufInfo.size)
+                            audioBuffer?.let { outputBuffer.get(it, bufferSize, bufInfo.size) }
+                            bufferSize += bufInfo.size
+                            if (bufferSize > bufferMaxSize) {
+                                sawOutputEOS = true
+                                isFullyLoaded = false
                             }
                         } else {
+                            if (!_isClosed) {
+                                val chunk = ByteArray(bufInfo.size)
+                                outputBuffer.get(chunk)
+
+                                audioTrack.let { track ->
+                                    if (track?.playState == PLAYSTATE_PLAYING) {
+                                        track.write(chunk, 0, chunk.size)
+                                        if (isStatic) {
+                                            checkBufferSize(chunk.size)
+                                            audioBuffer?.let {
+                                                System.arraycopy(
+                                                    chunk,
+                                                    0,
+                                                    it,
+                                                    bufferSize,
+                                                    chunk.size
+                                                )
+                                            }
+                                            bufferSize += chunk.size
+                                        }
+                                    } else {
+                                        sawOutputEOS = true
+                                    }
+                                }
+                            } else {
+                                sawOutputEOS = true
+                            }
+                        }
+
+                        outputBuffer.clear()
+                        codec.releaseOutputBuffer(outputBufIndex, false)
+
+                        if (bufInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
                             sawOutputEOS = true
                         }
                     }
-
-                    outputBuffer.clear()
-                    codec.releaseOutputBuffer(outputBufIndex, false)
-
-                    if (bufInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                        sawOutputEOS = true
-                    }
                 }
+            } catch (e: IllegalStateException) {
+                codecState = ERROR
             }
 
             if (isFullyLoaded) {
                 // If fully loaded, we no longer need the codec
-                stopCodec()
                 releaseCodec()
             } else {
                 audioTrack?.let { track ->
-                    // todo bug after pause > stop
                     if (!isFromStart
                         && track.playState != PLAYSTATE_PAUSED
                     ) {
@@ -257,14 +267,12 @@ class SoundSample(
                             // so we should mark it as FullyLoaded and releaseCoded, we no longer need it
                             if (track.playState != PLAYSTATE_STOPPED) {
                                 isFullyLoaded = true
-                                stopCodec()
                                 releaseCodec()
                             }
                         } else {
                             // For non static track, here track could be stopped or hit EOF,
                             // so we need seekTo(0), so next play will be started from the beginning
-                            stopCodec()
-                            extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+                            stopCodecAndSeek0()
                         }
                     }
                 }
@@ -281,7 +289,7 @@ class SoundSample(
     }
 
     override fun close() {
-        isClosed = true
+        _isClosed = true
         synchronized(codecLock) {
             audioTrack?.let {
                 stop()
@@ -293,28 +301,75 @@ class SoundSample(
         }
     }
 
-    private fun startCodec() {
-        codec?.let {
-            if (!isCodecStarted) {
-                it.configure(mediaFormat, null, null, 0)
-                it.start()
-                isCodecStarted = true
-            }
+    // Inside codecLock
+    private fun createCodec() {
+        codec = try {
+            mime?.let { MediaCodec.createDecoderByType(it) }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
         }
     }
 
+    // Inside codecLock
+    // Returns isSuccess
+    private fun startCodec(): Boolean =
+        codec
+            ?.let {
+                when (codecState) {
+                    ERROR -> run {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            it.reset()
+                                .also { codecState = UNINITIALIZED }
+                        } else {
+                            createCodec()
+                                .also { codecState = UNINITIALIZED }
+                        }
+                        startCodec() // Recursive
+                    }
+
+                    UNINITIALIZED -> {
+                        it.configure(mediaFormat, null, null, 0)
+                            .also { codecState = CONFIGURED }
+                        startCodec() // Recursive
+                    }
+
+                    CONFIGURED -> {
+                        it.start()
+                            .also { codecState = EXECUTING }
+                        true
+                    }
+
+                    EXECUTING -> true
+
+                    else -> false
+                }
+            }
+            ?: false
+
+    // Inside codecLock
+    private fun stopCodecAndSeek0() {
+        synchronized(codecLock) {
+            stopCodec()
+            extractor?.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+        }
+    }
+
+    // Inside codecLock
     private fun stopCodec() {
         codec?.let {
-            if (isCodecStarted) {
+            if (codecState == EXECUTING) {
                 it.stop()
-                isCodecStarted = false
+                    .also { codecState = UNINITIALIZED }
             }
         }
     }
 
+    // Inside codecLock
     private fun releaseCodec() {
-        if (isCodecStarted) stopCodec()
+        stopCodec()
         codec?.release()
+            .also { codecState = RELEASED }
         codec = null
 
         extractor?.release()
@@ -367,7 +422,15 @@ class SoundSample(
             val state = track.playState
 
             if (state != PLAYSTATE_STOPPED) {
-                if (state == PLAYSTATE_PLAYING) track.pause()
+                when (state) {
+                    PLAYSTATE_PLAYING ->
+                        track.pause()
+
+                    // If track was already paused we need seekTo(0),
+                    // as it would not be called in loadNextSamples
+                    PLAYSTATE_PAUSED ->
+                        stopCodecAndSeek0()
+                }
                 pausedPlaybackInBytes = 0
                 track.flush()
                 track.stop()
@@ -431,7 +494,7 @@ class SoundSample(
             synchronized(codecLock) {
                 audioTrack?.let { track ->
                     while (toPlayCount > 0) {
-                        if (isClosed) return
+                        if (_isClosed) return
 
                         if (track.playState != PLAYSTATE_PLAYING) track.play()
 
@@ -443,14 +506,14 @@ class SoundSample(
                             }
                         }
 
-                        if (isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
 
                         if (!isFullyLoaded) {
                             if (!isStatic) audioBuffer = null
                             loadNextSamples(false)
                         }
 
-                        if (isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
                         toPlayCount--
                     }
 
@@ -464,5 +527,24 @@ class SoundSample(
     companion object {
         const val MAX_STATIC_SIZE = 140 * 1024 // 140 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
+
+        // https://developer.android.com/reference/android/media/MediaCodec.html
+        @IntDef(
+            ERROR,
+            UNINITIALIZED,
+            CONFIGURED,
+            EXECUTING,
+            RELEASED
+        )
+        @Retention(AnnotationRetention.SOURCE)
+        annotation class CodecState {
+            companion object {
+                const val ERROR = -1
+                const val UNINITIALIZED = 0
+                const val CONFIGURED = 1
+                const val EXECUTING = 2
+                const val RELEASED = 3
+            }
+        }
     }
 }
