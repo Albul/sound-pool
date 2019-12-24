@@ -89,6 +89,7 @@ class SoundSample(
                         it.setDataSource(fd, fileOffset, fileSize)
                         mediaFormat = it.getTrackFormat(0)
                             ?.apply {
+                                setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0)
                                 mime = getString(MediaFormat.KEY_MIME)
                                 sampleRate = getInteger(MediaFormat.KEY_SAMPLE_RATE)
                                 channels = getInteger(MediaFormat.KEY_CHANNEL_COUNT)
@@ -321,7 +322,9 @@ class SoundSample(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             it.reset()
                                 .also { codecState = UNINITIALIZED }
-                        } else {
+                        } else { // Recreate codec
+                            codec?.release()
+                                .also { codecState = RELEASED }
                             createCodec()
                                 .also { codecState = UNINITIALIZED }
                         }
@@ -329,8 +332,15 @@ class SoundSample(
                     }
 
                     UNINITIALIZED -> {
-                        it.configure(mediaFormat, null, null, 0)
-                            .also { codecState = CONFIGURED }
+                        // If we got IllegalStateException,
+                        // that means that codec has moved to ERROR state silently
+                        try {
+                            it.configure(mediaFormat, null, null, 0)
+                                .also { codecState = CONFIGURED }
+                        } catch (e: IllegalStateException) {
+                            codecState = ERROR
+                            e.printStackTrace()
+                        }
                         startCodec() // Recursive
                     }
 
