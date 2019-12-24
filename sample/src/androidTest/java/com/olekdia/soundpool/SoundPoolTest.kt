@@ -19,7 +19,7 @@ class SoundPoolTest {
     @get:Rule
     var activityTestRule = ActivityTestRule(MainActivity::class.java)
 
-    fun createSoundPool(): SoundPoolCompat = SoundPoolCompat(context, 5, 100000)
+    fun createSoundPool(): SoundPoolCompat = SoundPoolCompat(context, 5, 80000)
 
     private val context: Context get() = activityTestRule.activity
 

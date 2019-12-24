@@ -14,8 +14,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 import com.olekdia.soundpool.SoundPoolCompat;
 
-import java.io.IOException;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -305,13 +303,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 case R.id.load_bg_2:
-                    if (mBg2Id == -1) mBg2Id = mSoundPoolCompat.load(R.raw.bg_sunrise_inhale);
+                    if (mBg2Id == -1) {
+                        mBg2Id = mSoundPoolCompat.load(R.raw.bg_sunrise_inhale);
+                    }
                     break;
                 case R.id.load_bg_3:
-                    try {
-                        if (mBg3Id == -1) mBg3Id = mSoundPoolCompat.load("file://android_asset/PAWA_Kowal.mp3");
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (mBg3Id == -1) {
+                        mBg3Id = mSoundPoolCompat.load(R.raw.bg_wind_retain/*"file://android_asset/PAWA_Kowal.mp3"*/);
                     }
                     break;
                 case R.id.load_short_sound_1:
