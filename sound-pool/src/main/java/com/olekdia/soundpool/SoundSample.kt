@@ -15,6 +15,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SoundSample(
     val id: Int,
@@ -48,9 +49,13 @@ class SoundSample(
     // and then reconfigure it and start it again before reaching eof
     @Volatile
     private var isCodecStarted: Boolean = false
-    @Volatile
-    var isClosed: Boolean = false
-        private set
+    private val _isClosed: AtomicBoolean = AtomicBoolean(false)
+
+    var isClosed: Boolean
+        get() = _isClosed.get()
+        private set(value) {
+            _isClosed.set(value)
+        }
 
     @WorkerThread
     fun load(
@@ -106,9 +111,7 @@ class SoundSample(
             extractor?.selectTrack(0)
             loadNextSamples(true)
 
-            if (isClosed) {
-                return false
-            }
+            if (isClosed) return false
 
             val channelConfiguration: Int = if (channels == 1) {
                 AudioFormat.CHANNEL_OUT_MONO
@@ -165,10 +168,8 @@ class SoundSample(
             var sawOutputEOS = false
 
             while (!sawOutputEOS) {
-                if (isClosed) {
-                    stopCodec()
-                    return
-                }
+                if (isClosed) return
+
                 if (!sawInputEOS) {
                     val inputBufIndex: Int = codec.dequeueInputBuffer(waitTimeout)
                     if (inputBufIndex >= 0) {
@@ -208,14 +209,23 @@ class SoundSample(
                             isFullyLoaded = false
                         }
                     } else {
-                        if (isPlaying() && !isClosed) {
+                        if (!isClosed) {
                             val chunk = ByteArray(bufInfo.size)
                             outputBuffer.get(chunk)
-                            audioTrack?.write(chunk, 0, chunk.size)
-                            if (isStatic) {
-                                checkBufferSize(chunk.size)
-                                audioBuffer?.let { System.arraycopy(chunk, 0, it, bufferSize, chunk.size) }
-                                bufferSize += chunk.size
+
+                            audioTrack.let { track ->
+                                if (track?.playState == PLAYSTATE_PLAYING) {
+                                    track.write(chunk, 0, chunk.size)
+                                    if (isStatic) {
+                                        checkBufferSize(chunk.size)
+                                        audioBuffer?.let {
+                                            System.arraycopy(chunk, 0, it, bufferSize, chunk.size)
+                                        }
+                                        bufferSize += chunk.size
+                                    }
+                                } else {
+                                    sawOutputEOS = true
+                                }
                             }
                         } else {
                             sawOutputEOS = true
@@ -242,12 +252,17 @@ class SoundSample(
                         && track.playState != PLAYSTATE_PAUSED
                     ) {
                         if (isStatic) {
+                            // For static track, here track is not stopped and paused,
+                            // that means that track is playing but hit EOF,
+                            // so we should mark it as FullyLoaded and releaseCoded, we no longer need it
                             if (track.playState != PLAYSTATE_STOPPED) {
                                 isFullyLoaded = true
                                 stopCodec()
                                 releaseCodec()
                             }
                         } else {
+                            // For non static track, here track could be stopped or hit EOF,
+                            // so we need seekTo(0), so next play will be started from the beginning
                             stopCodec()
                             extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                         }
