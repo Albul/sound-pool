@@ -25,6 +25,4 @@ ext {
     targetSdkVersion = 29
     compileSdkVersion = 29
     buildToolsVersion = '29.0.2'
-
-    olekdiaLibraryVersion = '3.+'
 }
