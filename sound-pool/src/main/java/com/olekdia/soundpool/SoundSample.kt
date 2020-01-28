@@ -369,8 +369,12 @@ class SoundSample(
     private fun stopCodec() {
         codec?.let {
             if (codecState == EXECUTING) {
-                it.stop()
-                    .also { codecState = UNINITIALIZED }
+                codecState = try {
+                    it.stop()
+                    UNINITIALIZED
+                } catch (e: IllegalStateException) {
+                    ERROR
+                }
             }
         }
     }
