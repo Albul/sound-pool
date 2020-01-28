@@ -438,7 +438,7 @@ class SoundSample(
             if (state != PLAYSTATE_STOPPED) {
                 when (state) {
                     PLAYSTATE_PLAYING ->
-                        track.pause()
+                        track.pauseSafely()
 
                     // If track was already paused we need seekTo(0),
                     // as it would not be called in loadNextSamples
@@ -447,7 +447,7 @@ class SoundSample(
                 }
                 pausedPlaybackInBytes = 0
                 track.flush()
-                track.stop()
+                track.stopSafely()
             }
         }
     }
@@ -456,12 +456,18 @@ class SoundSample(
     fun pause() {
         if ((audioTrack ?: return).playState != PLAYSTATE_PLAYING) return
 
-        audioTrack?.let {
-            it.pause()
-            val playbackInFrames = it.playbackHeadPosition
-            pausedPlaybackInBytes = if (playbackInFrames > 0) playbackInFrames * frameSizeInBytes else 0
+        audioTrack?.let { track ->
+            track.pauseSafely()
+
+            track.playbackHeadPosition.let { playbackInFrames ->
+                pausedPlaybackInBytes = if (playbackInFrames > 0) {
+                    playbackInFrames * frameSizeInBytes
+                } else {
+                    0
+                }
+            }
             // Skip written bytes, so next resume will be in sync with pausedPlaybackInBytes
-            if (audioBuffer != null) it.flush()
+            if (audioBuffer != null) track.flush()
         }
     }
 
@@ -531,7 +537,7 @@ class SoundSample(
                         toPlayCount--
                     }
 
-                    track.stop()
+                    track.stopSafely()
                     pausedPlaybackInBytes = 0
                 }
             }
@@ -541,6 +547,22 @@ class SoundSample(
     companion object {
         const val MAX_STATIC_SIZE = 140 * 1024 // 140 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
+
+        fun AudioTrack.pauseSafely() {
+            try {
+                this.pause()
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+            }
+        }
+
+        fun AudioTrack.stopSafely() {
+            try {
+                this.stop()
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+            }
+        }
 
         // https://developer.android.com/reference/android/media/MediaCodec.html
         @IntDef(
