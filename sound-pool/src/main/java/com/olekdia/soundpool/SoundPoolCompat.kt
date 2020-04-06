@@ -3,8 +3,8 @@ package com.olekdia.soundpool
 import android.content.Context
 import android.os.*
 import androidx.collection.SparseArrayCompat
-import com.olekdia.androidcommon.INVALID
 import com.olekdia.androidcommon.NO_RESOURCE
+import com.olekdia.common.INVALID
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue

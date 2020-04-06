@@ -1,2 +1,0 @@
-include ':sample', ':sound-pool'
-rootProject.name = 'sound-pool-project'

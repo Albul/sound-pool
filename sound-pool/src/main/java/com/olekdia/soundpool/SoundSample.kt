@@ -10,7 +10,7 @@ import androidx.annotation.WorkerThread
 import com.olekdia.androidcommon.extensions.buildAudioTrack
 import com.olekdia.androidcommon.extensions.getInputBufferCompat
 import com.olekdia.androidcommon.extensions.getOutputBufferCompat
-import com.olekdia.androidcommon.extensions.ifNotNull
+import com.olekdia.common.extensions.ifNotNull
 import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.CONFIGURED
 import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.ERROR
 import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.EXECUTING

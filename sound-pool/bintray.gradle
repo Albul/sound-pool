@@ -47,7 +47,6 @@ bintray {
     }
 }
 
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 version = libraryVersion
