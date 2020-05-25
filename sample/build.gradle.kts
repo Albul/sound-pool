@@ -13,6 +13,7 @@ android {
         applicationId = "com.olekdia.sample"
         versionCode = 1
         versionName = "1.0.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         getByName("release") {
@@ -44,14 +45,7 @@ dependencies {
     implementation(Libs.androidx.appcompat)
     implementation(Libs.androidx.material)
 
-    testImplementation(Libs.junit)
-    testImplementation(Libs.robolectric)
-    testImplementation(Libs.androidx.test_core)
-    testImplementation(Libs.androidx.test_runner)
-    testImplementation(Libs.androidx.test_rules)
-
     androidTestImplementation(Libs.junit)
-    androidTestImplementation(Libs.robolectric)
     androidTestImplementation(Libs.espresso)
     androidTestImplementation(Libs.androidx.test_core)
     androidTestImplementation(Libs.androidx.test_runner)

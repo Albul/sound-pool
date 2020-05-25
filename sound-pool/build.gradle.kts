@@ -48,10 +48,4 @@ dependencies {
     implementation(Libs.olekdia.common_android)
     implementation(Libs.androidx.annotations)
     implementation(Libs.androidx.collections)
-
-    testImplementation(Libs.junit)
-    testImplementation(Libs.robolectric)
-    testImplementation(Libs.androidx.test_core)
-    testImplementation(Libs.androidx.test_runner)
-    testImplementation(Libs.androidx.test_rules)
 }
