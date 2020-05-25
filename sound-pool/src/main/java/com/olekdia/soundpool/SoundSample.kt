@@ -65,16 +65,12 @@ class SoundSample(
         }
 
     @WorkerThread
-    fun load(
-        fd: FileDescriptor,
-        fileOffset: Long,
-        fileSize: Long
-    ): Boolean {
+    fun load(descriptor: SoundSampleDescriptor): Boolean {
         _isClosed = false
         synchronized(codecLock) {
-            isStatic = isStatic && fileSize < MAX_STATIC_SIZE
+            isStatic = isStatic && descriptor.fileSize < MAX_STATIC_SIZE
             audioBuffer = if (isStatic) {
-                ByteArray(fileSize.toInt() * 12)
+                ByteArray(descriptor.fileSize.toInt() * 12)
             } else {
                 ByteArray(bufferMaxSize * 14)
             }
@@ -87,7 +83,7 @@ class SoundSample(
             extractor = MediaExtractor()
                 .also {
                     try {
-                        it.setDataSource(fd, fileOffset, fileSize)
+                        descriptor.setExtractorDataSource(it)
                         mediaFormat = it.getTrackFormat(0)
                             ?.apply {
                                 setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0)
@@ -136,7 +132,7 @@ class SoundSample(
             )
             val writeBuffSizeInBytes: Int =
                 if (isFullyLoaded
-                    && fileSize < SMALL_FILE_SIZE
+                    && descriptor.fileSize < SMALL_FILE_SIZE
                 ) {
                     minSize
                 } else {
@@ -414,6 +410,10 @@ class SoundSample(
 
     fun isStopped(): Boolean = audioTrack?.playState == PLAYSTATE_STOPPED
 
+    /**
+     * @param leftVolume (range = 0.0 to 1.0)
+     * @param rightVolume (range = 0.0 to 1.0)
+     */
     @UiThread
     fun play(
         leftVolume: Float,
@@ -431,6 +431,10 @@ class SoundSample(
         threadPool.execute(playRun)
     }
 
+    /**
+     * @param leftVolume (range = 0.0 to 1.0)
+     * @param rightVolume (range = 0.0 to 1.0)
+     */
     @WorkerThread
     fun play(
         leftVolume: Float,

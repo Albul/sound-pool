@@ -34,11 +34,7 @@ class SoundSampleTest {
         val metadata = SoundSampleMetadata(12, R.raw.sec_tick_bird_ouzel, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
-        val success = sample.load(
-            descr.fileDescriptor,
-            descr.fileOffset,
-            descr.fileSize
-        )
+        val success = sample.load(descr)
         assertTrue(success)
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded())
@@ -54,11 +50,7 @@ class SoundSampleTest {
         val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
-        val success = sample.load(
-            descr.fileDescriptor,
-            descr.fileOffset,
-            descr.fileSize
-        )
+        val success = sample.load(descr)
         assertTrue(success)
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded())
@@ -74,11 +66,7 @@ class SoundSampleTest {
         val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
-        val success = sample.load(
-            descr.fileDescriptor,
-            descr.fileOffset,
-            descr.fileSize
-        )
+        val success = sample.load(descr)
         assertTrue(success)
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded())
@@ -98,11 +86,7 @@ class SoundSampleTest {
         val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
-        val success = sample.load(
-            descr.fileDescriptor,
-            descr.fileOffset,
-            descr.fileSize
-        )
+        val success = sample.load(descr)
         assertTrue(success)
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded())
@@ -127,11 +111,7 @@ class SoundSampleTest {
         val metadata = SoundSampleMetadata(12, R.raw.design_patterns_pdf, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
-        val success = sample.load(
-            descr.fileDescriptor,
-            descr.fileOffset,
-            descr.fileSize
-        )
+        val success = sample.load(descr)
         assertFalse(success)
         assertTrue(sample.isClosed)
         assertFalse(sample.isLoaded())
@@ -141,6 +121,30 @@ class SoundSampleTest {
         assertFalse(sample.isLoaded())
 
         assertFalse(sample.isPlaying())
+        assertFalse(sample.isPaused())
+        assertFalse(sample.isStopped())
+    }
+
+    @Test
+    fun loadSample_playAndWait_stateCorrect() {
+        val sample = SoundSample(12, 1234567, false)
+        val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertTrue(success)
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded())
+
+        val t = object : Thread() {
+            override fun run() {
+                sample.play(1f, 1f, 1f)
+            }
+        }
+        t.start()
+        Thread.sleep(50)
+
+        assertTrue(sample.isPlaying())
         assertFalse(sample.isPaused())
         assertFalse(sample.isStopped())
     }

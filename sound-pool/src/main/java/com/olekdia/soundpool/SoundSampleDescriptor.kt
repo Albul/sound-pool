@@ -2,6 +2,7 @@ package com.olekdia.soundpool
 
 import android.content.Context
 import android.content.res.AssetFileDescriptor
+import android.media.MediaExtractor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.olekdia.androidcommon.extensions.getFileSize
@@ -17,13 +18,12 @@ constructor(
     metadata: SoundSampleMetadata
 ) : Closeable {
 
-    val fileOffset: Long
     val fileSize: Long
+    private val fileOffset: Long
 
     private var assetDescr: AssetFileDescriptor? = null
     private var parcelDescr: ParcelFileDescriptor? = null
-    var fileDescriptor: FileDescriptor
-        private set
+    private var fileDescriptor: FileDescriptor
 
     init {
         when {
@@ -59,6 +59,10 @@ constructor(
                     }
             }
         }
+    }
+
+    fun setExtractorDataSource(extractor: MediaExtractor) {
+        extractor.setDataSource(fileDescriptor, fileOffset, fileSize)
     }
 
     @Throws(IOException::class)
