@@ -93,6 +93,35 @@ class SoundSampleTest {
     }
 
     @Test
+    fun loadSample_closeFewTimes_stateCorrect() {
+        val sample = SoundSample(12, 1234567, false)
+        val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(
+            descr.fileDescriptor,
+            descr.fileOffset,
+            descr.fileSize
+        )
+        assertTrue(success)
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded())
+
+        sample.close()
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded())
+
+        sample.close()
+        sample.close()
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded())
+
+        assertFalse(sample.isPlaying())
+        assertFalse(sample.isPaused())
+        assertFalse(sample.isStopped())
+    }
+
+    @Test
     fun loadSample_nonAudioFile_stateCorrect() {
         val sample = SoundSample(12, 1234567, false)
         val metadata = SoundSampleMetadata(12, R.raw.design_patterns_pdf, null)

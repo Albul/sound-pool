@@ -56,7 +56,7 @@ class SoundSample(
     @Volatile
     private var codecState: Int = UNINITIALIZED
     @Volatile
-    private var _isClosed: Boolean = false
+    private var _isClosed: Boolean = true
 
     var isClosed: Boolean
         get() = _isClosed
@@ -70,6 +70,7 @@ class SoundSample(
         fileOffset: Long,
         fileSize: Long
     ): Boolean {
+        _isClosed = false
         synchronized(codecLock) {
             isStatic = isStatic && fileSize < MAX_STATIC_SIZE
             audioBuffer = if (isStatic) {
@@ -110,12 +111,18 @@ class SoundSample(
             }
 
             createCodec()
-            if (codec == null) return false.also { close() }
+            if (codec == null
+                || mediaFormat == null
+            ) {
+                return false.also { close() }
+            }
 
             extractor?.selectTrack(0)
             loadNextSamples(true)
 
-            if (_isClosed) return false
+            if (_isClosed) {
+                return false.also { close() }
+            }
 
             val channelConfiguration: Int = if (channels == 1) {
                 AudioFormat.CHANNEL_OUT_MONO
@@ -152,7 +159,14 @@ class SoundSample(
                     + ", isStatic: " + isStatic
             );*/
         }
-        return true
+        return audioTrack.let {
+            if (it == null || it.state == STATE_UNINITIALIZED) {
+                close()
+                false
+            } else {
+                true
+            }
+        }
     }
 
     // Inside codecLock
