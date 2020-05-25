@@ -1,17 +1,18 @@
 package com.olekdia.soundpool
 
 import android.content.Context
-import androidx.test.espresso.Espresso
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
-import com.olekdia.androidcommontest.ActivityFinisher
-import com.olekdia.androidcommontest.delayShortToResume
 import com.olekdia.sample.MainActivity
+import com.olekdia.sample.R
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+const val LOAD_LONG_TIMEOUT: Long = 400L
+const val LOAD_TIMEOUT: Long = 50L
+const val PLAY_TIMEOUT: Long = 50L
 
 @LargeTest
 class SoundPoolTest {
@@ -19,91 +20,45 @@ class SoundPoolTest {
     @get:Rule
     var activityTestRule = ActivityTestRule(MainActivity::class.java)
 
-    fun createSoundPool(): SoundPoolCompat = SoundPoolCompat(context, 5, 80000)
-
     private val context: Context get() = activityTestRule.activity
 
-    private fun getResource(name: String): Int =
-        context.resources.getIdentifier(name, "raw", context.packageName)
-
-    private fun SoundPoolCompat.loadAndWait(resourceId: Int): Int {
-        LoadIdlingResource(this)
-        return this.load(resourceId)
-            .also { Espresso.onIdle() }
-    }
-
-    private fun SoundPoolCompat.playAndWait(
-        sampleId: Int,
-        loop: Int = 0
-    ): Int {
-        PlayIdlingResource(this)
-        return this.play(sampleId, loop)
-            .also { Espresso.onIdle() }
-    }
-
-    private fun SoundPoolCompat.resumeAndWait(sampleId: Int) {
-        PlayIdlingResource(this)
-        this.resume(sampleId)
-            .also { Espresso.onIdle() }
-    }
-
-    @Before
-    fun setUp() {
-    }
-
-    @Test
+     @Test
     fun loadSound_stopImmediately() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.load(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
         pool.stop(soundId)
         assertFalse(pool.isLoaded(soundId))
-
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_pauseImmediately() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.load(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
         pool.pause(soundId)
         assertFalse(pool.isLoaded(soundId))
-
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_pauseStopImmediately() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.load(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
         pool.pause(soundId)
         pool.stop(soundId)
 
         assertFalse(pool.isLoaded(soundId))
-
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_stopPauseImmediately() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.load(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
         pool.stop(soundId)
         pool.pause(soundId)
         assertFalse(pool.isLoaded(soundId))
-
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
 //--------------------------------------------------------------------------------------------------
@@ -112,26 +67,22 @@ class SoundPoolTest {
 
     @Test
     fun loadSound_playLoop_sampleIsPlaying() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_pause_resume_sampleIsPlaying() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -146,16 +97,15 @@ class SoundPoolTest {
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_pause_playLoop_sampleIsPlaying() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -170,16 +120,14 @@ class SoundPoolTest {
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_stop_playLoop_sampleIsPlaying() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -194,16 +142,13 @@ class SoundPoolTest {
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_stop_resume_sampleIsStopped() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -219,16 +164,13 @@ class SoundPoolTest {
         assertFalse(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_unload_sampleIsUnloadedAndNotPlaying() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -239,10 +181,8 @@ class SoundPoolTest {
         assertFalse(pool.isLoaded(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
-
+/*
     @Test // todo
     fun loadSound_playLoop_pause_stop_playLoop_sampleIsStartedFromTheBeginning() {
         val resourceId = getResource("bg_sea_retain")
@@ -337,7 +277,7 @@ class SoundPoolTest {
         pool.stop(sound2Id)
         delayShortToResume()
         ActivityFinisher.finishOpenActivities()
-    }
+    }*/
 
 //--------------------------------------------------------------------------------------------------
 //  Non loop sounds
@@ -345,10 +285,9 @@ class SoundPoolTest {
 
     @Test
     fun loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
-        val resourceId = getResource("sec_tick_cricket")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, 0)
@@ -359,7 +298,32 @@ class SoundPoolTest {
         assertTrue(pool.isStopped(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
+    }
+
+
+//--------------------------------------------------------------------------------------------------
+//  Utils
+//--------------------------------------------------------------------------------------------------
+
+    fun createSoundPool(): SoundPoolCompat = SoundPoolCompat(context, 5, 80000)
+
+    private fun SoundPoolCompat.loadAndWait(resourceId: Int): Int {
+        val soundId = this.load(resourceId)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        return soundId
+    }
+
+    private fun SoundPoolCompat.playAndWait(
+        sampleId: Int,
+        loop: Int = 0
+    ) {
+        this.play(sampleId, loop)
+        Thread.sleep(PLAY_TIMEOUT)
+    }
+
+    private fun SoundPoolCompat.resumeAndWait(sampleId: Int) {
+        this.resume(sampleId)
+        Thread.sleep(PLAY_TIMEOUT)
     }
 }

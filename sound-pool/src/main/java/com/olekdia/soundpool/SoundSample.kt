@@ -413,6 +413,7 @@ class SoundSample(
     /**
      * @param leftVolume (range = 0.0 to 1.0)
      * @param rightVolume (range = 0.0 to 1.0)
+     * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
      */
     @UiThread
     fun play(
