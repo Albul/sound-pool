@@ -3,12 +3,13 @@ package com.olekdia.soundpool
 import android.content.Context
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
+import com.olekdia.common.INVALID
 import com.olekdia.sample.MainActivity
 import com.olekdia.sample.R
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
+import java.io.IOException
 
 const val LOAD_LONG_TIMEOUT: Long = 400L
 const val LOAD_TIMEOUT: Long = 50L
@@ -22,7 +23,218 @@ class SoundPoolTest {
 
     private val context: Context get() = activityTestRule.activity
 
-     @Test
+//--------------------------------------------------------------------------------------------------
+//  Load methods
+//--------------------------------------------------------------------------------------------------
+
+    @Test
+    fun static_loadSample_oggFile_sampleIsLoadedAndStopped() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.sec_tick_bird_ouzel, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_oggFile_sampleIsLoadedAndStopped() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_mp3File_sampleIsLoadedAndStopped() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.dyathon_hope, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_unloadSample_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.unload(soundId)
+        Thread.sleep(LOAD_TIMEOUT)
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_unloadFewTimes_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.unload(soundId)
+        pool.unload(soundId)
+        Thread.sleep(LOAD_TIMEOUT)
+        pool.unload(soundId)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_notAudioFile_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.design_patterns_pdf, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.unload(soundId)
+        Thread.sleep(LOAD_TIMEOUT)
+
+        assertFalse(pool.isLoaded(soundId))
+    }
+
+    @Test
+    fun static_loadSample_notAudioFile_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        val soundId = pool.load(R.raw.design_patterns_pdf, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.unload(soundId)
+        Thread.sleep(LOAD_TIMEOUT)
+
+        assertFalse(pool.isLoaded(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_fromHttps_sampleIsLoadedAndPlaying() {
+        val pool = createSoundPool()
+        val soundId = pool.load("https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg", isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.play(soundId)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(1000)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSample_fromHttps_sampleIsLoadedAndPlaying() {
+        val pool = createSoundPool()
+        val soundId = pool.load("https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg", isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.play(soundId)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(1000)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun stream_loadSample_fromHttps_notAudioFile_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        val soundId = pool.load("https://pranabreath.info/images/6/6b/Vajrasana_pos.png", isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+
+        pool.play(soundId)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertFalse(pool.isPlaying(soundId))
+    }
+
+    @Test
+    fun stream_loadSample_fromEmptyPathString_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        var soundId = INVALID
+
+        assertThrows(
+            IOException::class.java
+        ) {
+            soundId = pool.load("", isStatic = false)
+        }
+
+        assertEquals(INVALID, soundId)
+    }
+
+    @Test
+    fun stream_loadSample_fromNullPathString_sampleIsUnloaded() {
+        val pool = createSoundPool()
+        var soundId = INVALID
+
+        assertThrows(
+            IOException::class.java
+        ) {
+            soundId = pool.load(null, isStatic = false)
+        }
+
+        assertEquals(INVALID, soundId)
+    }
+
+    // todo random resource
+
+//--------------------------------------------------------------------------------------------------
+//  Immediately methods
+//--------------------------------------------------------------------------------------------------
+
+    @Test
     fun loadSound_stopImmediately() {
         val pool = createSoundPool()
 

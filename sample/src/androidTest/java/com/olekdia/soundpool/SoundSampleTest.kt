@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioTrack
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
+import com.olekdia.androidcommon.NO_RESOURCE
 import com.olekdia.sample.MainActivity
 import com.olekdia.sample.R
 import org.junit.Assert.*
@@ -49,7 +50,7 @@ class SoundSampleTest {
     }
 
     @Test
-    fun static_loadSample_sampleIsLoadedAndStopped() {
+    fun static_loadSample_oggFile_sampleIsLoadedAndStopped() {
         val sample = SoundSample(12, 1234567, true)
         val metadata = SoundSampleMetadata(12, R.raw.sec_tick_bird_ouzel, null)
         val descr = SoundSampleDescriptor(context, metadata)
@@ -65,9 +66,25 @@ class SoundSampleTest {
     }
 
     @Test
-    fun stream_loadSample_sampleIsLoadedAndStopped() {
+    fun stream_loadSample_oggFile_sampleIsLoadedAndStopped() {
         val sample = SoundSample(12, 1234567, false)
         val metadata = SoundSampleMetadata(12, R.raw.bg_sea_retain, null)
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertTrue(success)
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded)
+        assertFalse(sample.isPlaying)
+        assertFalse(sample.isPaused)
+        assertTrue(sample.isStopped)
+        assertEquals(12, sample.id)
+    }
+
+    @Test
+    fun stream_loadSample_mp3File_sampleIsLoadedAndStopped() {
+        val sample = SoundSample(12, 1234567, false)
+        val metadata = SoundSampleMetadata(12, R.raw.dyathon_hope, null)
         val descr = SoundSampleDescriptor(context, metadata)
 
         val success = sample.load(descr)
@@ -126,7 +143,7 @@ class SoundSampleTest {
     }
 
     @Test
-    fun stream_loadSample_nonAudioFile_sampleIsClosed() {
+    fun stream_loadSample_notAudioFile_sampleIsClosed() {
         val sample = SoundSample(12, 1234567, false)
         val metadata = SoundSampleMetadata(12, R.raw.design_patterns_pdf, null)
         val descr = SoundSampleDescriptor(context, metadata)
@@ -146,7 +163,7 @@ class SoundSampleTest {
     }
 
     @Test
-    fun static_loadSample_nonAudioFile_sampleIsClosed() {
+    fun static_loadSample_notAudioFile_sampleIsClosed() {
         val sample = SoundSample(12, 1234567, true)
         val metadata = SoundSampleMetadata(12, R.raw.design_patterns_pdf, null)
         val descr = SoundSampleDescriptor(context, metadata)
@@ -163,6 +180,92 @@ class SoundSampleTest {
         assertFalse(sample.isPlaying)
         assertFalse(sample.isPaused)
         assertFalse(sample.isStopped)
+    }
+
+    @Test
+    fun stream_loadSample_fromHttps_sampleIsLoadedAndPlaying() {
+        val sample = SoundSample(12, 10000, false)
+        val metadata = SoundSampleMetadata(12, NO_RESOURCE, "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg")
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertTrue(success)
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded)
+
+        sample.play(1f, 1f, 1, 1f, playThreadPool)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(sample.isPlaying)
+        assertFalse(sample.isPaused)
+        assertFalse(sample.isStopped)
+
+        Thread.sleep(1000)
+        assertTrue(sample.isPlaying)
+        assertFalse(sample.isPaused)
+        assertFalse(sample.isStopped)
+        sample.stop()
+    }
+
+    @Test
+    fun static_loadSample_fromHttps_sampleIsLoadedAndPlaying() {
+        val sample = SoundSample(12, 100000000, true)
+        val metadata = SoundSampleMetadata(12, NO_RESOURCE, "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg")
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertTrue(success)
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded)
+
+        sample.play(1f, 1f, 1, 1f, playThreadPool)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(sample.isPlaying)
+        assertFalse(sample.isPaused)
+        assertFalse(sample.isStopped)
+
+        Thread.sleep(1000)
+        assertTrue(sample.isPlaying)
+        assertFalse(sample.isPaused)
+        assertFalse(sample.isStopped)
+        sample.stop()
+    }
+
+    @Test
+    fun stream_loadSample_fromHttps_notAudioFile_sampleIsClosed() {
+        val sample = SoundSample(12, 10000, false)
+        val metadata = SoundSampleMetadata(12, NO_RESOURCE, "https://pranabreath.info/images/6/6b/Vajrasana_pos.png")
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertFalse(success)
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded)
+    }
+
+    @Test
+    fun stream_loadSample_fromEmptyPathString_sampleIsClosed() {
+        val sample = SoundSample(12, 10000, false)
+        val metadata = SoundSampleMetadata(12, NO_RESOURCE, "")
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertFalse(success)
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded)
+    }
+
+    @Test
+    fun stream_loadSample_fromNullPathString_sampleIsClosed() {
+        val sample = SoundSample(12, 10000, false)
+        val metadata = SoundSampleMetadata(12, NO_RESOURCE, "")
+        val descr = SoundSampleDescriptor(context, metadata)
+
+        val success = sample.load(descr)
+        assertFalse(success)
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded)
     }
 
 //--------------------------------------------------------------------------------------------------
