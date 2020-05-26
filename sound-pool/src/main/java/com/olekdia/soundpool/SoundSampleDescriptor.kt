@@ -7,10 +7,13 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.olekdia.androidcommon.extensions.getFileSize
 import com.olekdia.androidcommon.extensions.isFileDocUri
+import com.olekdia.androidcommon.extensions.isHttpPath
+import com.olekdia.common.INVALID_L
 import java.io.Closeable
 import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
+import java.net.URL
 
 class SoundSampleDescriptor @Throws(IOException::class)
 constructor(
@@ -18,12 +21,17 @@ constructor(
     metadata: SoundSampleMetadata
 ) : Closeable {
 
+    /**
+     * File size in bytes
+     */
     val fileSize: Long
     private val fileOffset: Long
 
     private var assetDescr: AssetFileDescriptor? = null
     private var parcelDescr: ParcelFileDescriptor? = null
-    private var fileDescriptor: FileDescriptor
+
+    private var httpPath: String? = null
+    private var fileDescriptor: FileDescriptor? = null
 
     init {
         when {
@@ -47,6 +55,19 @@ constructor(
                         fileDescriptor = it!!.fileDescriptor
                     }
             }
+
+            metadata.path.isHttpPath -> {
+                httpPath = metadata.path
+                fileOffset = 0
+                fileSize = URL(metadata.path).getFileSize().let {
+                    if (it == INVALID_L) {
+                        DEFAULT_BUFFER_SIZE.toLong()
+                    } else {
+                        it
+                    }
+                }
+            }
+
             else -> {
                 assetDescr = null
 
@@ -62,7 +83,13 @@ constructor(
     }
 
     fun setExtractorDataSource(extractor: MediaExtractor) {
-        extractor.setDataSource(fileDescriptor, fileOffset, fileSize)
+        fileDescriptor?.let {
+            extractor.setDataSource(it, fileOffset, fileSize)
+        } ?: httpPath?.let {
+            extractor.setDataSource(it)
+        } ?: run {
+            throw IOException()
+        }
     }
 
     @Throws(IOException::class)
