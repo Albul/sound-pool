@@ -11,13 +11,7 @@ import com.olekdia.androidcommon.extensions.buildAudioTrack
 import com.olekdia.androidcommon.extensions.getInputBufferCompat
 import com.olekdia.androidcommon.extensions.getOutputBufferCompat
 import com.olekdia.common.extensions.ifNotNull
-import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.CONFIGURED
-import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.ERROR
-import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.EXECUTING
-import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.RELEASED
-import com.olekdia.soundpool.SoundSample.Companion.CodecState.Companion.UNINITIALIZED
 import java.io.Closeable
-import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
@@ -54,7 +48,10 @@ class SoundSample(
 
     @CodecState
     @Volatile
-    private var codecState: Int = UNINITIALIZED
+    private var codecState: Int = CodecState.UNINITIALIZED
+    @CodecState
+    @Volatile
+    private var playState: Int = PlayState.UNINITIALIZED
     @Volatile
     private var _isClosed: Boolean = true
 
@@ -63,6 +60,18 @@ class SoundSample(
         private set(value) {
             _isClosed = value
         }
+
+    val isLoaded: Boolean
+        get() = audioTrack != null
+
+    val isPlaying: Boolean
+        get() = playState == PlayState.PLAYING
+
+    val isPaused: Boolean
+        get() = playState == PlayState.PAUSED
+
+    val isStopped: Boolean
+        get() = playState == PlayState.STOPPED
 
     @WorkerThread
     fun load(descriptor: SoundSampleDescriptor): Boolean {
@@ -160,6 +169,7 @@ class SoundSample(
                 close()
                 false
             } else {
+                playState = PlayState.STOPPED
                 true
             }
         }
@@ -306,6 +316,7 @@ class SoundSample(
                 stop()
                 it.release()
             }
+            playState = PlayState.UNINITIALIZED
             audioTrack = null
             releaseCodec()
             audioBuffer = null
@@ -328,25 +339,25 @@ class SoundSample(
         codec
             ?.let {
                 when (codecState) {
-                    ERROR -> run {
+                    CodecState.ERROR -> run {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             it.reset()
-                                .also { codecState = UNINITIALIZED }
+                                .also { codecState = CodecState.UNINITIALIZED }
                         } else { // Recreate codec
                             codec?.release()
-                                .also { codecState = RELEASED }
+                                .also { codecState = CodecState.RELEASED }
                             createCodec()
-                                .also { codecState = UNINITIALIZED }
+                                .also { codecState = CodecState.UNINITIALIZED }
                         }
                         startCodec() // Recursive
                     }
 
-                    UNINITIALIZED -> {
+                    CodecState.UNINITIALIZED -> {
                         // If we got IllegalStateException,
                         // that means that codec has moved to ERROR state silently
                         try {
                             it.configure(mediaFormat, null, null, 0)
-                                .also { codecState = CONFIGURED }
+                                .also { codecState = CodecState.CONFIGURED }
                         } catch (e: IllegalStateException) {
                             codecState = ERROR
                             e.printStackTrace()
@@ -354,13 +365,13 @@ class SoundSample(
                         startCodec() // Recursive
                     }
 
-                    CONFIGURED -> {
+                    CodecState.CONFIGURED -> {
                         it.start()
-                            .also { codecState = EXECUTING }
+                            .also { codecState = CodecState.EXECUTING }
                         true
                     }
 
-                    EXECUTING -> true
+                    CodecState.EXECUTING -> true
 
                     else -> false
                 }
@@ -378,10 +389,10 @@ class SoundSample(
     // Inside codecLock
     private fun stopCodec() {
         codec?.let {
-            if (codecState == EXECUTING) {
+            if (codecState == CodecState.EXECUTING) {
                 codecState = try {
                     it.stop()
-                    UNINITIALIZED
+                    CodecState.UNINITIALIZED
                 } catch (e: IllegalStateException) {
                     ERROR
                 }
@@ -393,7 +404,7 @@ class SoundSample(
     private fun releaseCodec() {
         stopCodec()
         codec?.release()
-            .also { codecState = RELEASED }
+            .also { codecState = CodecState.RELEASED }
         codec = null
 
         extractor?.release()
@@ -402,18 +413,12 @@ class SoundSample(
         mediaFormat = null
     }
 
-    fun isLoaded(): Boolean = audioTrack != null
-
-    fun isPlaying(): Boolean = audioTrack?.playState == PLAYSTATE_PLAYING
-
-    fun isPaused(): Boolean = audioTrack?.playState == PLAYSTATE_PAUSED
-
-    fun isStopped(): Boolean = audioTrack?.playState == PLAYSTATE_STOPPED
-
     /**
+     * Play is made asynchronously, so isPlaying will return true after some delay
      * @param leftVolume (range = 0.0 to 1.0)
      * @param rightVolume (range = 0.0 to 1.0)
      * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @return true if successfully started playing, false otherwise
      */
     @UiThread
     fun play(
@@ -422,51 +427,66 @@ class SoundSample(
         loop: Int,
         rate: Float,
         threadPool: ThreadPoolExecutor
-    ) {
-        if (isPlaying()) return
+    ): Boolean =
+        audioTrack?.let { track ->
+            if (isPlaying) {
+                false
+            } else {
+                setVolume(leftVolume, rightVolume)
+                setRate(rate)
+                setLoop(loop)
 
-        setVolume(leftVolume, rightVolume)
-        setRate(rate)
-        setLoop(loop)
-
-        threadPool.execute(playRun)
-    }
+                track.play()
+                    .also { playState = PlayState.PLAYING }
+                threadPool.execute(playRun)
+                true
+            }
+        } ?: false
 
     /**
+     * Play is made asynchronously, so isPlaying will return true after some delay
      * @param leftVolume (range = 0.0 to 1.0)
      * @param rightVolume (range = 0.0 to 1.0)
+     * @return true if successfully started playing, false otherwise
      */
     @WorkerThread
     fun play(
         leftVolume: Float,
         rightVolume: Float,
         rate: Float
-    ) {
-        if (isPlaying()) return
+    ): Boolean =
+        audioTrack?.let { track ->
+            if (isPlaying) {
+                false
+            } else {
+                setVolume(leftVolume, rightVolume)
+                setRate(rate)
 
-        setVolume(leftVolume, rightVolume)
-        setRate(rate)
-        playRun.run()
-    }
+                track.play()
+                    .also { playState = PlayState.PLAYING }
+                playRun.run()
+                true
+            }
+        } ?: false
 
     @UiThread
     fun stop(): Boolean =
         audioTrack?.let { track ->
-            val state = track.playState
-
-            if (state != PLAYSTATE_STOPPED) {
-                when (state) {
-                    PLAYSTATE_PLAYING ->
+            if (!isStopped) {
+                when (playState) {
+                    PlayState.PLAYING ->
                         track.pause()
+                            .also { playState = PlayState.PAUSED }
 
                     // If track was already paused we need seekTo(0),
                     // as it would not be called in loadNextSamples
-                    PLAYSTATE_PAUSED ->
+                    PlayState.PAUSED ->
                         stopCodecAndSeek0()
                 }
                 pausedPlaybackInBytes = 0
                 track.flush()
                 track.stop()
+                    .also { playState = PlayState.STOPPED }
                 true
             } else {
                 false
@@ -480,8 +500,9 @@ class SoundSample(
     @UiThread
     fun pause(): Boolean =
         audioTrack?.let { track ->
-            if (track.playState == PLAYSTATE_PLAYING) {
+            if (isPlaying) {
                 track.pause()
+                    .also { playState = PlayState.PAUSED }
 
                 track.playbackHeadPosition.let { playbackInFrames ->
                     pausedPlaybackInBytes = if (playbackInFrames > 0) {
@@ -501,13 +522,17 @@ class SoundSample(
         } ?: false
 
     /**
-     * Resume previously paused audio
+     * Resume previously paused audio.
+     * Resume is made asynchronously, so isPlaying will return true after some delay
      * @return true if successfully resumed, false otherwise
      */
     @UiThread
     fun resume(threadPool: ThreadPoolExecutor): Boolean =
         audioTrack?.let { track ->
-            if (track.playState == PLAYSTATE_PAUSED) {
+            if (isPaused) {
+                track.play()
+                    .also { playState = PlayState.PLAYING }
+
                 threadPool.execute(playRun)
                 true
             } else {
@@ -591,9 +616,9 @@ class SoundSample(
             synchronized(codecLock) {
                 audioTrack?.let { track ->
                     while (toPlayCount > 0) {
-                        if (_isClosed) return
+                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
 
-                        if (track.playState != PLAYSTATE_PLAYING) track.play() // todo play right in method
+                        //if (track.playState != PLAYSTATE_PLAYING) track.play() // todo play right in method
 
                         audioBuffer?.let { buffer ->
                             if (isFullyLoaded || pausedPlaybackInBytes == 0) {
@@ -603,7 +628,7 @@ class SoundSample(
                             }
                         }
 
-                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return // todo
 
                         if (!isFullyLoaded) {
                             if (!isStatic) audioBuffer = null
@@ -614,7 +639,8 @@ class SoundSample(
                         toPlayCount--
                     }
 
-                    track.stopSafely()
+                    track.stop()
+                        .also { playState = PlayState.STOPPED }
                     pausedPlaybackInBytes = 0
                 }
             }
@@ -625,30 +651,13 @@ class SoundSample(
         const val MAX_STATIC_SIZE = 140 * 1024 // 140 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
 
-        // todo remove this
-        fun AudioTrack.pauseSafely() {
-            try {
-                this.pause()
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
-            }
-        }
-
-        fun AudioTrack.stopSafely() {
-            try {
-                this.stop()
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
-            }
-        }
-
         // https://developer.android.com/reference/android/media/MediaCodec.html
         @IntDef(
-            ERROR,
-            UNINITIALIZED,
-            CONFIGURED,
-            EXECUTING,
-            RELEASED
+            CodecState.ERROR,
+            CodecState.UNINITIALIZED,
+            CodecState.CONFIGURED,
+            CodecState.EXECUTING,
+            CodecState.RELEASED
         )
         @Retention(AnnotationRetention.SOURCE)
         annotation class CodecState {
@@ -658,6 +667,22 @@ class SoundSample(
                 const val CONFIGURED = 1
                 const val EXECUTING = 2
                 const val RELEASED = 3
+            }
+        }
+
+        @IntDef(
+            PlayState.UNINITIALIZED,
+            PlayState.STOPPED,
+            PlayState.PAUSED,
+            PlayState.PLAYING
+        )
+        @Retention(AnnotationRetention.SOURCE)
+        annotation class PlayState {
+            companion object {
+                const val UNINITIALIZED = -1
+                const val STOPPED = 0
+                const val PAUSED = 1
+                const val PLAYING = 2
             }
         }
     }

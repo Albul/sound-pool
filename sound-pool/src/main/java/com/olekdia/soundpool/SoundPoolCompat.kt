@@ -162,13 +162,17 @@ class SoundPoolCompat(
         ?: false
 
 
-    fun isLoaded(sampleId: Int): Boolean = samplePool.get(sampleId)?.isLoaded() ?: false
+    fun isLoaded(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.isLoaded ?: false
 
-    fun isPlaying(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPlaying() ?: false
+    fun isPlaying(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.isPlaying ?: false
 
-    fun isPaused(sampleId: Int): Boolean = samplePool.get(sampleId)?.isPaused() ?: false
+    fun isPaused(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.isPaused ?: false
 
-    fun isStopped(sampleId: Int): Boolean = samplePool.get(sampleId)?.isStopped() ?: true
+    fun isStopped(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.isStopped ?: true
 
     fun isPlaying(): Boolean {
         var isPlaying = false

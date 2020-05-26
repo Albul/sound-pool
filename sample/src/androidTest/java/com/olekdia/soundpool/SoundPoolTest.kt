@@ -182,13 +182,12 @@ class SoundPoolTest {
 
         pool.stop(soundId)
     }
-/*
-    @Test // todo
+
+    @Test
     fun loadSound_playLoop_pause_stop_playLoop_sampleIsStartedFromTheBeginning() {
-        val resourceId = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -209,16 +208,13 @@ class SoundPoolTest {
         assertTrue(pool.isPlaying(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound_playLoop_wait3xOfLength_trackIsStillPlaying() {
-        val resourceId = getResource("sec_tick_cricket")
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(resourceId)
+        val soundId: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, -1)
@@ -229,20 +225,16 @@ class SoundPoolTest {
         assertFalse(pool.isStopped(soundId))
 
         pool.stop(soundId)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
     }
 
     @Test
     fun loadSound2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
-        val resource1Id = getResource("bg_sunrise_inhale")
-        val resource2Id = getResource("bg_sea_retain")
         val pool = createSoundPool()
 
-        val sound1Id: Int = pool.loadAndWait(resource1Id)
+        val sound1Id: Int = pool.loadAndWait(R.raw.bg_sunrise_inhale)
         assertTrue(pool.isLoaded(sound1Id))
 
-        val sound2Id: Int = pool.loadAndWait(resource2Id)
+        val sound2Id: Int = pool.loadAndWait(R.raw.bg_sea_retain)
         assertTrue(pool.isLoaded(sound2Id))
 
         pool.playAndWait(sound1Id, -1)
@@ -275,9 +267,7 @@ class SoundPoolTest {
 
         pool.stop(sound1Id)
         pool.stop(sound2Id)
-        delayShortToResume()
-        ActivityFinisher.finishOpenActivities()
-    }*/
+    }
 
 //--------------------------------------------------------------------------------------------------
 //  Non loop sounds
@@ -299,7 +289,6 @@ class SoundPoolTest {
 
         pool.stop(soundId)
     }
-
 
 //--------------------------------------------------------------------------------------------------
 //  Utils
