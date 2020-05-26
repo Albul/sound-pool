@@ -529,7 +529,7 @@ class SoundSample(
     /**
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
      * @return error code or success, see [SUCCESS], [ERROR_INVALID_OPERATION],
-     * [ERROR_INVALID_OPERATION]
+     * [ERROR_BAD_VALUE]
      */
     @AnyThread
     fun setRate(rate: Float): Int =
@@ -549,11 +549,20 @@ class SoundSample(
 
     /**
      * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @return error code or success, see [SUCCESS], [ERROR_INVALID_OPERATION],
+     * [ERROR_BAD_VALUE]
      */
     @UiThread
-    fun setLoop(loop: Int) {
-        toPlayCount = if (loop == -1) Int.MAX_VALUE else 1 + loop
-    }
+    fun setLoop(loop: Int): Int =
+        when {
+            loop < -1 -> ERROR_BAD_VALUE
+            audioTrack == null -> ERROR_INVALID_OPERATION
+
+            else -> {
+                toPlayCount = if (loop == -1) Int.MAX_VALUE else 1 + loop
+                SUCCESS
+            }
+        }
 
 //--------------------------------------------------------------------------------------------------
 //  Runnable classes

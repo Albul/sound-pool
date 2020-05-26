@@ -363,6 +363,39 @@ class SoundSampleTest {
 //--------------------------------------------------------------------------------------------------
 
     @Test
+    fun setLoopToNotLoaded_invalidReturn() {
+        val sample = SoundSample(12, 8000, true)
+
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded())
+        val result = sample.setLoop(1)
+        assertEquals(AudioTrack.ERROR_INVALID_OPERATION, result)
+
+        assertFalse(sample.isPlaying())
+    }
+
+    @Test
+    fun setLoopBadValue_invalidReturn() {
+        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
+
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded())
+
+        sample.play(1f, 1f, 0, 1f, playThreadPool)
+        Thread.sleep(50)
+        assertTrue(sample.isPlaying())
+        val result1 = sample.setLoop(-2)
+        assertEquals(AudioTrack.ERROR_BAD_VALUE, result1)
+        val result2 = sample.setLoop(-1232)
+        assertEquals(AudioTrack.ERROR_BAD_VALUE, result2)
+        Thread.sleep(300)
+
+        assertFalse(sample.isPlaying())
+        assertFalse(sample.isPaused())
+        assertTrue(sample.isStopped())
+    }
+
+    @Test
     fun playShortStreamOnce_setLoopForever_sampleIsPlayingContinuously() {
         val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
 
@@ -372,7 +405,8 @@ class SoundSampleTest {
         sample.play(1f, 1f, 0, 1f, playThreadPool)
         Thread.sleep(50)
         assertTrue(sample.isPlaying())
-        sample.setLoop(-1)
+        val result = sample.setLoop(-1)
+        assertEquals(AudioTrack.SUCCESS, result)
         Thread.sleep(300)
 
         assertTrue(sample.isPlaying())
@@ -395,7 +429,8 @@ class SoundSampleTest {
         sample.play(1f, 1f, 0, 1f, playThreadPool)
         Thread.sleep(50)
         assertTrue(sample.isPlaying())
-        sample.setLoop(-1)
+        val result = sample.setLoop(-1)
+        assertEquals(AudioTrack.SUCCESS, result)
         Thread.sleep(300)
 
         assertTrue(sample.isPlaying())
@@ -409,6 +444,30 @@ class SoundSampleTest {
     }
 
     @Test
+    fun playShortStaticOnce_setLoopTwice_sampleIsPlayedTwice() {
+        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
+
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded())
+
+        sample.play(1f, 1f, 0, 1f, playThreadPool)
+        Thread.sleep(50)
+        assertTrue(sample.isPlaying())
+        val result = sample.setLoop(1)
+        assertEquals(AudioTrack.SUCCESS, result)
+        Thread.sleep(200)
+
+        assertTrue(sample.isPlaying())
+        Thread.sleep(200)
+        assertTrue(sample.isPlaying())
+        Thread.sleep(100)
+
+        assertFalse(sample.isPlaying())
+        assertFalse(sample.isPaused())
+        assertTrue(sample.isStopped())
+    }
+
+    @Test
     fun playStatic_setRate_sampleIsPlayingTwiceFast() {
         val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = true)
 
@@ -418,7 +477,8 @@ class SoundSampleTest {
         sample.play(1f, 1f, 0, 1f, playThreadPool)
         Thread.sleep(50)
         assertTrue(sample.isPlaying())
-        sample.setRate(2f)
+        val result = sample.setRate(2f)
+        assertEquals(AudioTrack.SUCCESS, result)
         Thread.sleep(50)
 
         assertTrue(sample.isPlaying())
@@ -438,7 +498,8 @@ class SoundSampleTest {
         sample.play(1f, 1f, 0, 1f, playThreadPool)
         Thread.sleep(50)
         assertTrue(sample.isPlaying())
-        sample.setRate(2f)
+        val result = sample.setRate(2f)
+        assertEquals(AudioTrack.SUCCESS, result)
         Thread.sleep(50)
 
         assertTrue(sample.isPlaying())
@@ -446,6 +507,39 @@ class SoundSampleTest {
         assertFalse(sample.isPlaying())
         assertFalse(sample.isPaused())
         assertTrue(sample.isStopped())
+    }
+
+    @Test
+    fun playStream_setRateBadValue_invalidReturn() {
+        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
+
+        assertFalse(sample.isClosed)
+        assertTrue(sample.isLoaded())
+
+        sample.play(1f, 1f, 0, 1f, playThreadPool)
+        Thread.sleep(50)
+        assertTrue(sample.isPlaying())
+        val result1 = sample.setRate(-20f)
+        assertEquals(AudioTrack.ERROR_BAD_VALUE, result1)
+        val result2 = sample.setRate(2220f)
+        assertEquals(AudioTrack.ERROR_BAD_VALUE, result2)
+        Thread.sleep(50)
+
+        assertTrue(sample.isPlaying())
+        Thread.sleep(100)
+        assertTrue(sample.isPlaying())
+    }
+
+    @Test
+    fun setRateToNotLoaded_invalidReturned() {
+        val sample = SoundSample(12, 8000, true)
+
+        assertTrue(sample.isClosed)
+        assertFalse(sample.isLoaded())
+        val result = sample.setRate(2f)
+        assertEquals(AudioTrack.ERROR_INVALID_OPERATION, result)
+
+        assertFalse(sample.isPlaying())
     }
 
     @Test
