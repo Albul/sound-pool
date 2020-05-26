@@ -497,18 +497,34 @@ class SoundSample(
         threadPool.execute(playRun)
     }
 
+    /**
+     * @param leftVolume left volume value (range = 0.0 to 1.0)
+     * @param rightVolume right volume value (range = 0.0 to 1.0)
+     * @return error code or success, see [SUCCESS], [ERROR_INVALID_OPERATION]
+     */
     @AnyThread
+    @Suppress("DEPRECATION")
     fun setVolume(
         leftVolume: Float,
         rightVolume: Float
-    ) {
-        if (currLeftVolume != leftVolume || currRightVolume != rightVolume) {
-            audioTrack?.setStereoVolume(leftVolume, rightVolume)
-            currLeftVolume = leftVolume
-            currRightVolume = rightVolume
+    ): Int =
+        if (currLeftVolume != leftVolume
+            || currRightVolume != rightVolume
+        ) {
+            audioTrack
+                ?.let {
+                    currLeftVolume = leftVolume
+                    currRightVolume = rightVolume
+                    it.setStereoVolume(leftVolume, rightVolume)
+                }
+                ?: ERROR_INVALID_OPERATION
+        } else {
+            if (audioTrack == null) ERROR_INVALID_OPERATION else SUCCESS
         }
-    }
 
+    /**
+     * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
+     */
     @AnyThread
     fun setRate(rate: Float) {
         if (currRate != rate) {
@@ -519,6 +535,9 @@ class SoundSample(
         }
     }
 
+    /**
+     * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
+     */
     @UiThread
     fun setLoop(loop: Int) {
         toPlayCount = if (loop == -1) Int.MAX_VALUE else 1 + loop
@@ -535,7 +554,7 @@ class SoundSample(
                     while (toPlayCount > 0) {
                         if (_isClosed) return
 
-                        if (track.playState != PLAYSTATE_PLAYING) track.play()
+                        if (track.playState != PLAYSTATE_PLAYING) track.play() // todo play right in method
 
                         audioBuffer?.let { buffer ->
                             if (isFullyLoaded || pausedPlaybackInBytes == 0) {
@@ -567,6 +586,7 @@ class SoundSample(
         const val MAX_STATIC_SIZE = 140 * 1024 // 140 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
 
+        // todo remove this
         fun AudioTrack.pauseSafely() {
             try {
                 this.pause()
