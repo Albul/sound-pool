@@ -519,21 +519,33 @@ class SoundSample(
                 }
                 ?: ERROR_INVALID_OPERATION
         } else {
-            if (audioTrack == null) ERROR_INVALID_OPERATION else SUCCESS
+            if (audioTrack == null) {
+                ERROR_INVALID_OPERATION
+            } else {
+                SUCCESS
+            }
         }
 
     /**
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
+     * @return error code or success, see [SUCCESS], [ERROR_INVALID_OPERATION],
+     * [ERROR_INVALID_OPERATION]
      */
     @AnyThread
-    fun setRate(rate: Float) {
+    fun setRate(rate: Float): Int =
         if (currRate != rate) {
-            audioTrack?.run {
-                playbackRate = (rate * sampleRate).toInt()
+            audioTrack
+                ?.let {
+                    currRate = rate
+                    it.setPlaybackRate((rate * it.sampleRate).toInt())
+                } ?: ERROR_INVALID_OPERATION
+        } else {
+            if (audioTrack == null) {
+                ERROR_INVALID_OPERATION
+            } else {
+                SUCCESS
             }
-            currRate = rate
         }
-    }
 
     /**
      * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
