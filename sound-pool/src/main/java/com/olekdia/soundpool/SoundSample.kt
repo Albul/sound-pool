@@ -450,14 +450,14 @@ class SoundSample(
     }
 
     @UiThread
-    fun stop() {
+    fun stop(): Boolean =
         audioTrack?.let { track ->
             val state = track.playState
 
             if (state != PLAYSTATE_STOPPED) {
                 when (state) {
                     PLAYSTATE_PLAYING ->
-                        track.pauseSafely()
+                        track.pause()
 
                     // If track was already paused we need seekTo(0),
                     // as it would not be called in loadNextSamples
@@ -466,36 +466,54 @@ class SoundSample(
                 }
                 pausedPlaybackInBytes = 0
                 track.flush()
-                track.stopSafely()
+                track.stop()
+                true
+            } else {
+                false
             }
-        }
-    }
+        } ?: false
 
+    /**
+     * Pause the audio
+     * @return true if successfully paused, false otherwise
+     */
     @UiThread
-    fun pause() {
-        if ((audioTrack ?: return).playState != PLAYSTATE_PLAYING) return
-
+    fun pause(): Boolean =
         audioTrack?.let { track ->
-            track.pauseSafely()
+            if (track.playState == PLAYSTATE_PLAYING) {
+                track.pause()
 
-            track.playbackHeadPosition.let { playbackInFrames ->
-                pausedPlaybackInBytes = if (playbackInFrames > 0) {
-                    playbackInFrames * frameSizeInBytes
-                } else {
-                    0
+                track.playbackHeadPosition.let { playbackInFrames ->
+                    pausedPlaybackInBytes = if (playbackInFrames > 0) {
+                        playbackInFrames * frameSizeInBytes
+                    } else {
+                        0
+                    }
                 }
+                // Skip written bytes, so next resume will be in sync with pausedPlaybackInBytes
+                if (audioBuffer != null) {
+                    track.flush()
+                }
+                true
+            } else {
+                false
             }
-            // Skip written bytes, so next resume will be in sync with pausedPlaybackInBytes
-            if (audioBuffer != null) track.flush()
-        }
-    }
+        } ?: false
 
+    /**
+     * Resume previously paused audio
+     * @return true if successfully resumed, false otherwise
+     */
     @UiThread
-    fun resume(threadPool: ThreadPoolExecutor) {
-        if ((audioTrack ?: return).playState != PLAYSTATE_PAUSED) return
-
-        threadPool.execute(playRun)
-    }
+    fun resume(threadPool: ThreadPoolExecutor): Boolean =
+        audioTrack?.let { track ->
+            if (track.playState == PLAYSTATE_PAUSED) {
+                threadPool.execute(playRun)
+                true
+            } else {
+                false
+            }
+        } ?: false
 
     /**
      * @param leftVolume left volume value (range = 0.0 to 1.0)
