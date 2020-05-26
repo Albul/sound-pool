@@ -71,25 +71,19 @@ class SoundPoolCompat(
 
     private fun generateNextId(): Int = nextId++
 
-    @Throws(IOException::class)
-    @JvmOverloads
-    fun load(
-        path: String?,
-        isStatic: Boolean = false
-    ): Int = load(path, bufferSize, isStatic)
-
     /**
-     * Load the sound from the specified path.
+     * Load the sound from the specified path. Filesystem or internet
      *
      * @param path the path to the audio file
      *
      * @return a sample ID. This value can be used to play or unload the sound.
      */
     @Throws(IOException::class)
+    @JvmOverloads
     fun load(
         path: String?,
-        bufferSize: Int,
-        isStatic: Boolean
+        bufferSize: Int = this.bufferSize,
+        isStatic: Boolean = false
     ): Int {
         if (path.isNullOrEmpty()) throw IOException()
         return if (samplePool.size() == maxSamples) INVALID else _load(0, path, bufferSize, isStatic)
@@ -102,17 +96,11 @@ class SoundPoolCompat(
      *
      * @return a sample ID. This value can be used to play or unload the sound.
      */
-    fun load(rawResId: Int): Int = if (rawResId == NO_RESOURCE) INVALID else load(rawResId, false)
-
+    @JvmOverloads
     fun load(
         rawResId: Int,
+        bufferSize: Int = this.bufferSize,
         isStatic: Boolean = false
-    ): Int = if (rawResId == NO_RESOURCE) INVALID else load(rawResId, bufferSize, isStatic)
-
-    fun load(
-        rawResId: Int,
-        bufferSize: Int,
-        isStatic: Boolean
     ): Int =
         if (rawResId == NO_RESOURCE
             || samplePool.size() == maxSamples
