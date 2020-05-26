@@ -27,8 +27,10 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(R.raw.bg_sea_retain)
-        pool.stop(soundId)
+        val stopResult = pool.stop(soundId)
         assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isStopped(soundId))
+        assertFalse(stopResult)
     }
 
     @Test
@@ -36,8 +38,10 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(R.raw.bg_sea_retain)
-        pool.pause(soundId)
+        val result = pool.pause(soundId)
         assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(result)
     }
 
     @Test
@@ -45,10 +49,13 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(R.raw.bg_sea_retain)
-        pool.pause(soundId)
-        pool.stop(soundId)
+        val pauseResult = pool.pause(soundId)
+        val stopResult = pool.stop(soundId)
 
         assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isStopped(soundId))
+        assertFalse(stopResult)
+        assertFalse(pauseResult)
     }
 
     @Test
@@ -56,9 +63,24 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId: Int = pool.load(R.raw.bg_sea_retain)
-        pool.stop(soundId)
-        pool.pause(soundId)
+        val stopResult = pool.stop(soundId)
+        val pauseResult = pool.pause(soundId)
         assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isStopped(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(stopResult)
+        assertFalse(pauseResult)
+    }
+
+    @Test
+    fun loadSound_playImmediately() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.bg_sea_retain)
+        pool.play(soundId)
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isStopped(soundId))
+        assertFalse(pool.isPlaying(soundId))
     }
 
 //--------------------------------------------------------------------------------------------------
@@ -88,7 +110,8 @@ class SoundPoolTest {
         pool.playAndWait(soundId, -1)
         assertTrue(pool.isPlaying(soundId))
 
-        pool.pause(soundId)
+        val result = pool.pause(soundId)
+        assertTrue(result)
         assertFalse(pool.isPlaying(soundId))
         assertTrue(pool.isPaused(soundId))
 
@@ -288,6 +311,103 @@ class SoundPoolTest {
         assertTrue(pool.isStopped(soundId))
 
         pool.stop(soundId)
+    }
+
+//--------------------------------------------------------------------------------------------------
+//  Play once
+//--------------------------------------------------------------------------------------------------
+
+    @Test
+    fun playOnce_sampleIsPlayingAndStoppedAfter() {
+        val pool = createSoundPool()
+
+        val soundId = pool.playOnce(R.raw.phase_tick_bumblebee, 1f, 1f, 1f)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+        assertTrue(pool.isLoaded(soundId))
+        assertTrue(pool.isPlaying(soundId))
+        assertTrue(pool.isPlaying())
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        Thread.sleep(1300)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPlaying())
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun playOnce_sampleIsPlaying_pauseAndWait_sampleIsUnloadedAndCannotBeResumed() {
+        val pool = createSoundPool()
+
+        val soundId = pool.playOnce(R.raw.phase_tick_bumblebee, 1f, 1f, 1f)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+        assertTrue(pool.isLoaded(soundId))
+        assertTrue(pool.isPlaying(soundId))
+        assertTrue(pool.isPlaying())
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        Thread.sleep(50)
+        val pauseResult = pool.pause(soundId)
+        assertTrue(pauseResult)
+        Thread.sleep(50)
+
+        val resumeResult = pool.resume(soundId)
+        assertFalse(resumeResult)
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPlaying())
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+    }
+
+    @Test
+    fun playOnce_sampleIsPlaying_pauseThenPlayAnotherThenResume_samplesIsStoppedAfter() {
+        val pool = createSoundPool()
+        val otherSoundId = pool.load(R.raw.phase_tick_bumblebee)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        val soundId = pool.playOnce(R.raw.sec_tick_frog, 1f, 1f, 1f)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+        assertTrue(pool.isLoaded(soundId))
+        assertTrue(pool.isPlaying(soundId))
+        assertTrue(pool.isPlaying())
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        val pauseResult = pool.pause(soundId)
+        assertTrue(pauseResult)
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPlaying())
+
+        pool.play(otherSoundId)
+        assertTrue(pool.isLoaded(otherSoundId))
+        assertTrue(pool.isPlaying(otherSoundId))
+        assertTrue(pool.isPlaying())
+        assertFalse(pool.isPaused(otherSoundId))
+        assertFalse(pool.isStopped(otherSoundId))
+
+        val resumeResult = pool.resume(soundId)
+        assertTrue(resumeResult)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(600)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        assertTrue(pool.isPlaying(otherSoundId))
+        assertTrue(pool.isPlaying())
+
+        Thread.sleep(800)
+
+        assertFalse(pool.isPlaying(otherSoundId))
+        assertFalse(pool.isPlaying())
     }
 
 //--------------------------------------------------------------------------------------------------

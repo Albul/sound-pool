@@ -231,9 +231,9 @@ class SoundPoolCompat(
      */
     fun playOnce(
         resId: Int,
-        leftVolume: Float,
-        rightVolume: Float,
-        rate: Float
+        leftVolume: Float = 1.0f,
+        rightVolume: Float = 1.0f,
+        rate: Float = 1.0f
     ): Int = if (resId == NO_RESOURCE) {
         INVALID
     } else {
@@ -262,9 +262,9 @@ class SoundPoolCompat(
      */
     fun playOnce(
         path: String?,
-        leftVolume: Float,
-        rightVolume: Float,
-        rate: Float
+        leftVolume: Float = 1.0f,
+        rightVolume: Float = 1.0f,
+        rate: Float = 1.0f
     ): Int = if (path.isNullOrEmpty()) {
         INVALID
     } else {
@@ -307,9 +307,14 @@ class SoundPoolCompat(
         }
     }
 
-    fun stop(sampleId: Int) {
-        samplePool.get(sampleId)?.stop()
-    }
+    /**
+     * Stop a playback stream.
+     *
+     * @param sampleId an id returned by the load() function
+     * @return true if successfully stopped, false otherwise
+     */
+    fun stop(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.stop() ?: false
 
     /**
      * Pause a playback stream.
@@ -320,10 +325,10 @@ class SoundPoolCompat(
      * function will have no effect.
      *
      * @param sampleId an id returned by the load() function
+     * @return true if successfully paused, false otherwise
      */
-    fun pause(sampleId: Int) {
-        samplePool.get(sampleId)?.pause()
-    }
+    fun pause(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.pause() ?: false
 
     /**
      * Resume a playback stream.
@@ -333,10 +338,10 @@ class SoundPoolCompat(
      * previously paused, calling this function will have no effect.
      *
      * @param sampleId an id returned by the load() function
+     * @return true if successfully resumed, false otherwise
      */
-    fun resume(sampleId: Int) {
-        samplePool.get(sampleId)?.resume(playThreadPool)
-    }
+    fun resume(sampleId: Int): Boolean =
+        samplePool.get(sampleId)?.resume(playThreadPool) ?: false
 
     /**
      * Pause all active streams.
