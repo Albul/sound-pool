@@ -32,6 +32,7 @@ android {
         exclude("META-INF/NOTICE.txt")
         exclude("META-INF/notice.txt")
         exclude("META-INF/ASL2.0")
+        exclude("META-INF/*.kotlin_module")
     }
 }
 
@@ -46,6 +47,6 @@ tasks.withType<Javadoc>().all {
 dependencies {
     implementation(Libs.olekdia.common_jvm)
     implementation(Libs.olekdia.common_android)
+    implementation(Libs.olekdia.sparse_array_jvm)
     implementation(Libs.androidx.annotations)
-    implementation(Libs.androidx.collections)
 }

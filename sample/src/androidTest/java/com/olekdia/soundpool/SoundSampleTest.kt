@@ -13,7 +13,6 @@ import org.junit.Test
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.jvm.isAccessible
 
 /**
  * R.raw.sec_tick_cricket - 260 ms
@@ -304,7 +303,7 @@ class SoundSampleTest {
         assertFalse(sample.isClosed)
 
         sample.play(1f, 1f, 1, 1f, playThreadPool)
-        Thread.sleep(PLAY_TIMEOUT)
+        Thread.sleep(100)
 
         assertTrue(sample.isPlaying)
         assertFalse(sample.isPaused)
@@ -1198,7 +1197,7 @@ class SoundSampleTest {
         Thread.sleep(PLAY_TIMEOUT)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(100)
+        Thread.sleep(80)
         assertTrue(sample.isPlaying)
 
         sample.stop()
@@ -1224,7 +1223,7 @@ class SoundSampleTest {
         Thread.sleep(PLAY_TIMEOUT)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(100)
+        Thread.sleep(80)
         assertTrue(sample.isPlaying)
 
         sample.stop()
@@ -1255,10 +1254,4 @@ class SoundSampleTest {
 
         return sample
     }
-
-    private fun getAudioTrack(sample: SoundSample): AudioTrack =
-        SoundSample::class.members.find {
-            it.isAccessible = true
-            it.name == "audioTrack"
-        }!!.call(sample) as AudioTrack
 }

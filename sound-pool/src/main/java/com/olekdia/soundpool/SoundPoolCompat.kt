@@ -3,9 +3,9 @@ package com.olekdia.soundpool
 import android.content.Context
 import android.media.AudioTrack
 import android.os.*
-import androidx.collection.SparseArrayCompat
 import com.olekdia.androidcommon.NO_RESOURCE
 import com.olekdia.common.INVALID
+import com.olekdia.sparsearray.IntSparseArray
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadFactory
@@ -21,7 +21,7 @@ class SoundPoolCompat(
      */
     var bufferSize: Int
 ) {
-    private val samplePool: SparseArrayCompat<SoundSample> = SparseArrayCompat(maxSamples)
+    private val samplePool: IntSparseArray<SoundSample> = IntSparseArray(maxSamples)
     private var eventHandler: EventHandler? = null
     private val loadHandlerThread: Handler
     private val playThreadPool: ThreadPoolExecutor = ThreadPoolExecutor(
@@ -57,7 +57,7 @@ class SoundPoolCompat(
         loadHandlerThread.looper.quit()
         toLoadQueue.clear()
 
-        for (i in 0 until samplePool.size()) {
+        for (i in 0 until samplePool.size) {
             samplePool.valueAt(i)?.let {
                 it.stop()
                 it.close()
@@ -85,7 +85,7 @@ class SoundPoolCompat(
         isStatic: Boolean = false
     ): Int =
         if (path.isNullOrEmpty()
-            || samplePool.size() == maxSamples
+            || samplePool.size == maxSamples
         ) {
             INVALID
         } else {
@@ -106,7 +106,7 @@ class SoundPoolCompat(
         isStatic: Boolean = false
     ): Int =
         if (rawResId == NO_RESOURCE
-            || samplePool.size() == maxSamples
+            || samplePool.size == maxSamples
         ) {
             INVALID
         } else {
@@ -154,21 +154,21 @@ class SoundPoolCompat(
 
 
     fun isLoaded(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.isLoaded ?: false
+        samplePool[sampleId]?.isLoaded ?: false
 
     fun isPlaying(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.isPlaying ?: false
+        samplePool[sampleId]?.isPlaying ?: false
 
     fun isPaused(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.isPaused ?: false
+        samplePool[sampleId]?.isPaused ?: false
 
     fun isStopped(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.isStopped ?: false
+        samplePool[sampleId]?.isStopped ?: false
 
     fun isPlaying(): Boolean {
         var isPlaying = false
-        for (i in 0 until samplePool.size()) {
-            isPlaying = isPlaying or isPlaying(samplePool.keyAt(i))
+        for (i in 0 until samplePool.size) {
+            isPlaying = isPlaying or isPlaying(samplePool.keyAt(i) ?: INVALID)
         }
         return isPlaying
     }
@@ -310,7 +310,7 @@ class SoundPoolCompat(
      * @return true if successfully stopped, false otherwise
      */
     fun stop(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.stop() ?: false
+        samplePool[sampleId]?.stop() ?: false
 
     /**
      * Pause a playback stream.
@@ -324,7 +324,7 @@ class SoundPoolCompat(
      * @return true if successfully paused, false otherwise
      */
     fun pause(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.pause() ?: false
+        samplePool[sampleId]?.pause() ?: false
 
     /**
      * Resume a playback stream.
@@ -337,7 +337,7 @@ class SoundPoolCompat(
      * @return true if successfully resumed, false otherwise
      */
     fun resume(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.resume(playThreadPool) ?: false
+        samplePool[sampleId]?.resume(playThreadPool) ?: false
 
     /**
      * Pause all active streams.
@@ -347,7 +347,7 @@ class SoundPoolCompat(
      * are playing.
      */
     fun autoPause() {
-        for (i in 0 until samplePool.size()) {
+        for (i in 0 until samplePool.size) {
             samplePool.valueAt(i)?.pause()
         }
     }
@@ -358,7 +358,7 @@ class SoundPoolCompat(
      * Automatically resumes all streams that were paused.
      */
     fun autoResume() {
-        for (i in 0 until samplePool.size()) {
+        for (i in 0 until samplePool.size) {
             samplePool.valueAt(i)?.resume(playThreadPool)
         }
     }
@@ -381,7 +381,7 @@ class SoundPoolCompat(
         leftVolume: Float,
         rightVolume: Float
     ): Boolean =
-        samplePool.get(sampleId)?.setVolume(leftVolume, rightVolume) == AudioTrack.SUCCESS
+        samplePool[sampleId]?.setVolume(leftVolume, rightVolume) == AudioTrack.SUCCESS
 
     /**
      * Set stream volume.
@@ -405,7 +405,7 @@ class SoundPoolCompat(
      * @return true if success, false otherwise
      */
     fun setRate(sampleId: Int, rate: Float): Boolean =
-        samplePool.get(sampleId)?.setRate(rate) == AudioTrack.SUCCESS
+        samplePool[sampleId]?.setRate(rate) == AudioTrack.SUCCESS
 
     /**
      * Set loop mode.
@@ -420,7 +420,7 @@ class SoundPoolCompat(
      * @return true if success, false otherwise
      */
     fun setLoop(sampleId: Int, repeat: Int): Boolean =
-        samplePool.get(sampleId)?.setLoop(repeat) == AudioTrack.SUCCESS
+        samplePool[sampleId]?.setLoop(repeat) == AudioTrack.SUCCESS
 
     /**
      * Sets the callback hook for the OnLoadCompleteListener.

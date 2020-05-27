@@ -184,7 +184,7 @@ class SoundSample(
             if (!startCodec()) return
 
             val bufInfo = MediaCodec.BufferInfo()
-            val waitTimeout: Long = 1000 // microseconds to wait before get buffer
+            var waitTimeout: Long = 1000 // microseconds to wait before get buffer
             var sawInputEOS = false
             var sawOutputEOS = false
 
@@ -267,6 +267,11 @@ class SoundSample(
 
                         if (bufInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
                             sawOutputEOS = true
+                        }
+                    } else {
+                        waitTimeout += 50
+                        if (waitTimeout > 50_000) {
+                            throw IllegalStateException()
                         }
                     }
                 }

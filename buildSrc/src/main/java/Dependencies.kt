@@ -7,8 +7,8 @@ object Versions {
 
     object olekdia {
         const val common = "0.1.7"
-        const val common_android = "3.2.9"
-        const val common_android_test = "3.0.0"
+        const val common_android = "3.2.10"
+        const val sparse_array = "0.2.4"
     }
 
     object sdk {
@@ -55,8 +55,10 @@ object Libs {
         val common_js = "$common_prefix-js:${Versions.olekdia.common}"
         val common_native = "$common_prefix-native:${Versions.olekdia.common}"
 
+        private val sparse_array_prefix = "com.olekdia:multiplatform-sparse-array"
+        val sparse_array_jvm = "${sparse_array_prefix}-jvm:${Versions.olekdia.sparse_array}"
+
         val common_android = "com.olekdia:android-common:${Versions.olekdia.common_android}"
-        val common_android_test = "com.olekdia:android-common-test:${Versions.olekdia.common_android_test}"
     }
 
     object androidx {

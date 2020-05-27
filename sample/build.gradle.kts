@@ -32,6 +32,17 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIES")
+        exclude("META-INF/LICENSE")
+        exclude("META-INF/LICENSE.txt")
+        exclude("META-INF/license.txt")
+        exclude("META-INF/NOTICE")
+        exclude("META-INF/NOTICE.txt")
+        exclude("META-INF/notice.txt")
+        exclude("META-INF/ASL2.0")
+        exclude("META-INF/*.kotlin_module")
+    }
 }
 
 dependencies {
@@ -50,5 +61,4 @@ dependencies {
     androidTestImplementation(Libs.androidx.test_core)
     androidTestImplementation(Libs.androidx.test_runner)
     androidTestImplementation(Libs.androidx.test_rules)
-    androidTestImplementation(Libs.olekdia.common_android_test)
 }
