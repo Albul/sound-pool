@@ -1,11 +1,11 @@
 package com.olekdia.soundpool
 
 import android.content.Context
+import android.media.AudioTrack
 import android.os.*
 import androidx.collection.SparseArrayCompat
 import com.olekdia.androidcommon.NO_RESOURCE
 import com.olekdia.common.INVALID
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadFactory
@@ -190,7 +190,7 @@ class SoundPoolCompat(
      * @param sampleId a sampleId returned by the load() function
      * @param leftVolume left volume value (range = 0.0 to 1.0)
      * @param rightVolume right volume value (range = 0.0 to 1.0)
-     * @param loop loop mode (0 = no loop, -1 = loop forever)
+     * @param repeat replay number of times (0 = play once, 1 play twice, -1 = play forever)
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
      * @return the same sampleId or -1 if there is no such sample
      */
@@ -199,19 +199,26 @@ class SoundPoolCompat(
         sampleId: Int,
         leftVolume: Float = 1.0f,
         rightVolume: Float = 1.0f,
-        loop: Int = 0,
+        repeat: Int = 0,
         rate: Float = 1.0f
     ): Int = samplePool.get(sampleId)
         ?.let { sample ->
-            sample.play(leftVolume, rightVolume, loop, rate, playThreadPool)
+            sample.play(leftVolume, rightVolume, repeat, rate, playThreadPool)
             sampleId
         }
         ?: INVALID
 
+    /**
+     * Play a sound from a sample ID.
+     *
+     * @param sampleId a sampleId returned by the load() function
+     * @param repeat replay number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @return the same sampleId or -1 if there is no such sample
+     */
     fun play(
         sampleId: Int,
-        loop: Int
-    ): Int = play(sampleId, 1.0f, 1.0f, loop)
+        repeat: Int
+    ): Int = play(sampleId, 1.0f, 1.0f, repeat)
 
     /**
      * Similar to #play(), but for track that weren't preloaded.
@@ -241,8 +248,6 @@ class SoundPoolCompat(
             )
         }
     }
-
-
 
     /**
      * Similar to #play(), but for track that weren't preloaded.
@@ -369,18 +374,22 @@ class SoundPoolCompat(
      * @param sampleId a sampleId returned by the load() function
      * @param leftVolume left volume value (range = 0.0 to 1.0)
      * @param rightVolume right volume value (range = 0.0 to 1.0)
+     * @return true if success, false otherwise
      */
     fun setVolume(
         sampleId: Int,
         leftVolume: Float,
         rightVolume: Float
-    ) {
-        samplePool.get(sampleId)?.setVolume(leftVolume, rightVolume)
-    }
+    ): Boolean =
+        samplePool.get(sampleId)?.setVolume(leftVolume, rightVolume) == AudioTrack.SUCCESS
 
-    fun setVolume(sampleId: Int, volume: Float) {
+    /**
+     * Set stream volume.
+     *
+     * @return true if success, false otherwise
+     */
+    fun setVolume(sampleId: Int, volume: Float): Boolean =
         setVolume(sampleId, volume, volume)
-    }
 
     /**
      * Change playback rate.
@@ -393,10 +402,10 @@ class SoundPoolCompat(
      *
      * @param sampleId a sampleId returned by the load() function
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
+     * @return true if success, false otherwise
      */
-    fun setRate(sampleId: Int, rate: Float) {
-        samplePool.get(sampleId)?.setRate(rate)
-    }
+    fun setRate(sampleId: Int, rate: Float): Boolean =
+        samplePool.get(sampleId)?.setRate(rate) == AudioTrack.SUCCESS
 
     /**
      * Set loop mode.
@@ -407,11 +416,11 @@ class SoundPoolCompat(
      * If the stream does not exist, it will have no effect.
      *
      * @param sampleId a sampleId returned by the load() function
-     * @param loop loop mode (0 = no loop, -1 = loop forever)
+     * @param repeat replay number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @return true if success, false otherwise
      */
-    fun setLoop(sampleId: Int, loop: Int) {
-        samplePool.get(sampleId)?.setLoop(loop)
-    }
+    fun setLoop(sampleId: Int, repeat: Int): Boolean =
+        samplePool.get(sampleId)?.setLoop(repeat) == AudioTrack.SUCCESS
 
     /**
      * Sets the callback hook for the OnLoadCompleteListener.
