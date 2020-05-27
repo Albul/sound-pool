@@ -1009,7 +1009,7 @@ class SoundPoolTest {
         val result = pool.setRate(soundId, 0.5f)
         assertTrue(result)
 
-        Thread.sleep(300)
+        Thread.sleep(270)
         assertTrue(pool.isPlaying(soundId))
         assertFalse(pool.isStopped(soundId))
 
@@ -1290,6 +1290,74 @@ class SoundPoolTest {
 
         pool.stop(loopId1)
         pool.stop(loopId2)
+    }
+
+    @Test
+    fun play3Sounds_autoPause_nothingPlaying_autoResume_samplesResumedSavingStates() {
+        val pool = createSoundPool()
+
+        val loopId1: Int = pool.load(R.raw.dyathon_hope, isStatic = false)
+        val loopId2: Int = pool.load(R.raw.bg_wind_retain, isStatic = true)
+        val shortId3: Int = pool.load(R.raw.phase_tick_bumblebee, isStatic = false)
+        val shortId4: Int = pool.load(R.raw.voice_male_inhale, isStatic = true)
+        val shortId5: Int = pool.load(R.raw.sec_tick_grasshopper, isStatic = true)
+        Thread.sleep(1500)
+
+        assertTrue(pool.isLoaded(loopId1))
+        assertTrue(pool.isLoaded(loopId2))
+        assertTrue(pool.isLoaded(shortId3))
+        assertTrue(pool.isLoaded(shortId4))
+        assertTrue(pool.isLoaded(shortId5))
+
+
+        pool.play(loopId1, repeat = -1)
+        pool.play(loopId2, repeat = -1)
+        pool.play(shortId3, repeat = 1, rate = 0.5F)
+        pool.play(shortId4, repeat = 0)
+
+        Thread.sleep(200)
+
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+        assertTrue(pool.isPlaying(shortId3))
+        assertTrue(pool.isPlaying(shortId4))
+        assertFalse(pool.isPlaying(shortId5))
+        assertTrue(pool.isPlaying())
+
+        pool.autoPause()
+
+        assertFalse(pool.isPlaying())
+        assertFalse(pool.isPlaying(loopId1))
+        assertFalse(pool.isPlaying(loopId2))
+        assertFalse(pool.isPlaying(shortId3))
+        assertFalse(pool.isPlaying(shortId4))
+        assertFalse(pool.isPlaying(shortId5))
+
+        assertTrue(pool.isPaused(loopId1))
+        assertTrue(pool.isPaused(loopId2))
+        assertTrue(pool.isPaused(shortId3))
+        assertTrue(pool.isPaused(shortId4))
+        assertFalse(pool.isPaused(shortId5))
+
+        pool.autoResume()
+
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+        assertTrue(pool.isPlaying(shortId3))
+        assertTrue(pool.isPlaying(shortId4))
+        assertFalse(pool.isPlaying(shortId5))
+        assertTrue(pool.isPlaying())
+
+        Thread.sleep(1500)
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+        assertTrue(pool.isPlaying(shortId3))
+        assertFalse(pool.isPlaying(shortId4))
+
+        pool.stop(loopId1)
+        pool.stop(loopId2)
+        pool.stop(shortId3)
+        pool.stop(shortId4)
     }
 
     @Test
