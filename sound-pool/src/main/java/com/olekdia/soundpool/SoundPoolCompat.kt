@@ -78,16 +78,19 @@ class SoundPoolCompat(
      *
      * @return a sample ID. This value can be used to play or unload the sound.
      */
-    @Throws(IOException::class)
     @JvmOverloads
     fun load(
         path: String?,
         bufferSize: Int = this.bufferSize,
         isStatic: Boolean = false
-    ): Int {
-        if (path.isNullOrEmpty()) throw IOException()
-        return if (samplePool.size() == maxSamples) INVALID else _load(0, path, bufferSize, isStatic)
-    }
+    ): Int =
+        if (path.isNullOrEmpty()
+            || samplePool.size() == maxSamples
+        ) {
+            INVALID
+        } else {
+            _load(0, path, bufferSize, isStatic)
+        }
 
     /**
      * Load the sound from the specified APK resource.
@@ -160,7 +163,7 @@ class SoundPoolCompat(
         samplePool.get(sampleId)?.isPaused ?: false
 
     fun isStopped(sampleId: Int): Boolean =
-        samplePool.get(sampleId)?.isStopped ?: true
+        samplePool.get(sampleId)?.isStopped ?: false
 
     fun isPlaying(): Boolean {
         var isPlaying = false
@@ -507,7 +510,6 @@ class SoundPoolCompat(
 
                 if (eventHandler != null
                     && sample != null
-                    && !sample.isClosed
                 ) {
                     eventHandler?.run {
                         sendMessage(
