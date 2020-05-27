@@ -517,6 +517,68 @@ class SoundPoolTest {
         assertFalse(pool.isStopped(soundId))
     }
 
+    @Test
+    fun load5Sounds_loadOneMore_maxSamplesExceeded() {
+        val pool = createSoundPool()
+
+        val soundId1: Int = pool.loadAndWait(R.raw.dyathon_hope)
+        assertTrue(pool.isLoaded(soundId1))
+        assertNotEquals(INVALID, soundId1)
+
+        val soundId2: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(soundId2))
+        assertNotEquals(INVALID, soundId2)
+
+        val soundId3: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
+        assertTrue(pool.isLoaded(soundId3))
+        assertNotEquals(INVALID, soundId3)
+
+        val soundId4: Int = pool.loadAndWait(R.raw.sec_tick_bird_ouzel)
+        assertTrue(pool.isLoaded(soundId4))
+        assertNotEquals(INVALID, soundId4)
+
+        val soundId5: Int = pool.loadAndWait(R.raw.sec_tick_bird_goldfinch)
+        assertTrue(pool.isLoaded(soundId5))
+        assertNotEquals(INVALID, soundId5)
+
+        val soundId6: Int = pool.load(R.raw.sec_tick_frog)
+        assertFalse(pool.isLoaded(soundId6))
+        assertEquals(INVALID, soundId6)
+    }
+
+    @Test
+    fun loadSameSoundsThreeTimes_loadedWithDifferentSamples() {
+        val pool = createSoundPool()
+
+        val soundId1: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(soundId1))
+        assertNotEquals(INVALID, soundId1)
+
+        val soundId2: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(soundId2))
+        assertNotEquals(INVALID, soundId2)
+
+        val soundId3: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(soundId3))
+        assertNotEquals(INVALID, soundId3)
+
+        assertNotEquals(soundId1, soundId2)
+        assertNotEquals(soundId2, soundId3)
+
+        pool.play(soundId1)
+        pool.play(soundId2)
+        pool.play(soundId3)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(soundId1))
+        assertTrue(pool.isPlaying(soundId2))
+        assertTrue(pool.isPlaying(soundId3))
+
+        pool.stop(soundId1)
+        pool.stop(soundId2)
+        pool.stop(soundId3)
+    }
+
 //--------------------------------------------------------------------------------------------------
 //  Immediately methods
 //--------------------------------------------------------------------------------------------------
@@ -1228,6 +1290,310 @@ class SoundPoolTest {
 
         pool.stop(loopId1)
         pool.stop(loopId2)
+    }
+
+    @Test
+    fun stream_stressTest_load20SoundsOneByOne_play_samplesIsLoadedAndPlayed() {
+        val pool = SoundPoolCompat(context, 25, 80000)
+
+        val soundId1: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(soundId1))
+        assertNotEquals(INVALID, soundId1)
+
+        val soundId2: Int = pool.loadAndWait(R.raw.bg_sunrise_inhale)
+        assertTrue(pool.isLoaded(soundId2))
+        assertNotEquals(INVALID, soundId2)
+
+        val soundId3: Int = pool.loadAndWait(R.raw.bg_sea_retain)
+        assertTrue(pool.isLoaded(soundId3))
+        assertNotEquals(INVALID, soundId3)
+
+        val soundId4: Int = pool.loadAndWait(R.raw.sec_tick_bird_goldfinch)
+        assertTrue(pool.isLoaded(soundId4))
+        assertNotEquals(INVALID, soundId4)
+
+        val soundId5: Int = pool.loadAndWait(R.raw.sec_tick_bird_ouzel)
+        assertTrue(pool.isLoaded(soundId5))
+        assertNotEquals(INVALID, soundId5)
+
+        val soundId6: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
+        assertTrue(pool.isLoaded(soundId6))
+        assertNotEquals(INVALID, soundId6)
+
+        val soundId7: Int = pool.loadAndWait(R.raw.sec_tick_frog)
+        assertTrue(pool.isLoaded(soundId7))
+        assertNotEquals(INVALID, soundId7)
+
+        val soundId8: Int = pool.loadAndWait(R.raw.sec_tick_grasshopper)
+        assertTrue(pool.isLoaded(soundId8))
+        assertNotEquals(INVALID, soundId8)
+
+        val soundId9: Int = pool.loadAndWait(R.raw.voice_female_retain)
+        assertTrue(pool.isLoaded(soundId9))
+        assertNotEquals(INVALID, soundId9)
+
+        val soundId10: Int = pool.loadAndWait(R.raw.voice_male_inhale)
+        assertTrue(pool.isLoaded(soundId10))
+        assertNotEquals(INVALID, soundId10)
+
+        val soundId11: Int = pool.loadAndWait(R.raw.sec_tick_frog)
+        assertTrue(pool.isLoaded(soundId11))
+        assertNotEquals(INVALID, soundId11)
+
+        val soundId12: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
+        assertTrue(pool.isLoaded(soundId12))
+        assertNotEquals(INVALID, soundId12)
+
+        val soundId13: Int = pool.loadAndWait(R.raw.sec_tick_bird_ouzel)
+        assertTrue(pool.isLoaded(soundId13))
+        assertNotEquals(INVALID, soundId13)
+
+        val soundId14: Int = pool.loadAndWait(R.raw.sec_tick_bird_goldfinch)
+        assertTrue(pool.isLoaded(soundId14))
+        assertNotEquals(INVALID, soundId14)
+
+        val soundId15: Int = pool.loadAndWait(R.raw.phase_tick_bird_oriole)
+        assertTrue(pool.isLoaded(soundId15))
+        assertNotEquals(INVALID, soundId15)
+
+        val soundId16: Int = pool.loadAndWait(R.raw.phase_tick_bird_oriole_golden)
+        assertTrue(pool.isLoaded(soundId16))
+        assertNotEquals(INVALID, soundId16)
+
+        val soundId17: Int = pool.loadAndWait(R.raw.phase_tick_bird_owl)
+        assertTrue(pool.isLoaded(soundId17))
+        assertNotEquals(INVALID, soundId17)
+
+        val soundId18: Int = pool.loadAndWait(R.raw.phase_tick_bumblebee)
+        assertTrue(pool.isLoaded(soundId18))
+        assertNotEquals(INVALID, soundId18)
+
+        val soundId19: Int = pool.loadAndWait(R.raw.sec_tick_grasshopper)
+        assertTrue(pool.isLoaded(soundId19))
+        assertNotEquals(INVALID, soundId19)
+
+        val soundId20: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
+        assertTrue(pool.isLoaded(soundId20))
+        assertNotEquals(INVALID, soundId20)
+
+        pool.play(soundId1, repeat = -1)
+        pool.play(soundId2, repeat = -1)
+        pool.play(soundId3, repeat = -1)
+        pool.play(soundId4, repeat = -1)
+        pool.play(soundId5, repeat = -1)
+        pool.play(soundId6, repeat = -1)
+        pool.play(soundId7, repeat = -1)
+        pool.play(soundId8, repeat = -1)
+        pool.play(soundId9, repeat = -1)
+        pool.play(soundId10, repeat = -1)
+        pool.play(soundId11, repeat = -1)
+        pool.play(soundId12, repeat = -1)
+        pool.play(soundId13, repeat = -1)
+        pool.play(soundId14, repeat = -1)
+        pool.play(soundId15, repeat = -1)
+        pool.play(soundId16, repeat = -1)
+        pool.play(soundId17, repeat = -1)
+        pool.play(soundId18, repeat = -1)
+        pool.play(soundId19, repeat = -1)
+        pool.play(soundId20, repeat = -1)
+        Thread.sleep(500)
+
+        assertTrue(pool.isPlaying(soundId1))
+        assertTrue(pool.isPlaying(soundId2))
+        assertTrue(pool.isPlaying(soundId3))
+        assertTrue(pool.isPlaying(soundId4))
+        assertTrue(pool.isPlaying(soundId5))
+        assertTrue(pool.isPlaying(soundId6))
+        assertTrue(pool.isPlaying(soundId7))
+        assertTrue(pool.isPlaying(soundId8))
+        assertTrue(pool.isPlaying(soundId9))
+        assertTrue(pool.isPlaying(soundId10))
+        assertTrue(pool.isPlaying(soundId11))
+        assertTrue(pool.isPlaying(soundId12))
+        assertTrue(pool.isPlaying(soundId13))
+        assertTrue(pool.isPlaying(soundId14))
+        assertTrue(pool.isPlaying(soundId15))
+        assertTrue(pool.isPlaying(soundId16))
+        assertTrue(pool.isPlaying(soundId17))
+        assertTrue(pool.isPlaying(soundId18))
+        assertTrue(pool.isPlaying(soundId19))
+        assertTrue(pool.isPlaying(soundId20))
+
+        Thread.sleep(2000)
+
+        pool.stop(soundId1)
+        pool.stop(soundId2)
+        pool.stop(soundId3)
+        pool.stop(soundId4)
+        pool.stop(soundId5)
+        pool.stop(soundId6)
+        pool.stop(soundId7)
+        pool.stop(soundId8)
+        pool.stop(soundId9)
+        pool.stop(soundId10)
+        pool.stop(soundId11)
+        pool.stop(soundId12)
+        pool.stop(soundId13)
+        pool.stop(soundId14)
+        pool.stop(soundId15)
+        pool.stop(soundId16)
+        pool.stop(soundId17)
+        pool.stop(soundId18)
+        pool.stop(soundId19)
+        pool.stop(soundId20)
+    }
+
+    @Test
+    fun static_stressTest_load20SoundsSimultaneously_play_samplesIsLoadedAndPlayed() {
+        val pool = SoundPoolCompat(context, 25, 80000)
+
+        val soundId1: Int = pool.load(R.raw.bg_wind_retain, isStatic = true)
+        assertNotEquals(INVALID, soundId1)
+
+        val soundId2: Int = pool.load(R.raw.bg_sunrise_inhale, isStatic = true)
+        assertNotEquals(INVALID, soundId2)
+
+        val soundId3: Int = pool.load(R.raw.bg_sea_retain, isStatic = true)
+        assertNotEquals(INVALID, soundId3)
+
+        val soundId4: Int = pool.load(R.raw.sec_tick_bird_goldfinch, isStatic = true)
+        assertNotEquals(INVALID, soundId4)
+
+        val soundId5: Int = pool.load(R.raw.sec_tick_bird_ouzel, isStatic = true)
+        assertNotEquals(INVALID, soundId5)
+
+        val soundId6: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        assertNotEquals(INVALID, soundId6)
+
+        val soundId7: Int = pool.load(R.raw.sec_tick_frog, isStatic = true)
+        assertNotEquals(INVALID, soundId7)
+
+        val soundId8: Int = pool.load(R.raw.sec_tick_grasshopper, isStatic = true)
+        assertNotEquals(INVALID, soundId8)
+
+        val soundId9: Int = pool.load(R.raw.voice_female_retain, isStatic = true)
+        assertNotEquals(INVALID, soundId9)
+
+        val soundId10: Int = pool.load(R.raw.voice_male_inhale, isStatic = true)
+        assertNotEquals(INVALID, soundId10)
+
+        val soundId11: Int = pool.load(R.raw.sec_tick_frog, isStatic = true)
+        assertNotEquals(INVALID, soundId11)
+
+        val soundId12: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        assertNotEquals(INVALID, soundId12)
+
+        val soundId13: Int = pool.load(R.raw.sec_tick_bird_ouzel, isStatic = true)
+        assertNotEquals(INVALID, soundId13)
+
+        val soundId14: Int = pool.load(R.raw.sec_tick_bird_goldfinch, isStatic = true)
+        assertNotEquals(INVALID, soundId14)
+
+        val soundId15: Int = pool.load(R.raw.phase_tick_bird_oriole, isStatic = true)
+        assertNotEquals(INVALID, soundId15)
+
+        val soundId16: Int = pool.load(R.raw.phase_tick_bird_oriole_golden, isStatic = true)
+        assertNotEquals(INVALID, soundId16)
+
+        val soundId17: Int = pool.load(R.raw.phase_tick_bird_owl, isStatic = true)
+        assertNotEquals(INVALID, soundId17)
+
+        val soundId18: Int = pool.load(R.raw.phase_tick_bumblebee, isStatic = true)
+        assertNotEquals(INVALID, soundId18)
+
+        val soundId19: Int = pool.load(R.raw.sec_tick_grasshopper, isStatic = true)
+        assertNotEquals(INVALID, soundId19)
+
+        val soundId20: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        assertNotEquals(INVALID, soundId20)
+
+        Thread.sleep(2000)
+        assertTrue(pool.isLoaded(soundId1))
+        assertTrue(pool.isLoaded(soundId2))
+        assertTrue(pool.isLoaded(soundId3))
+        assertTrue(pool.isLoaded(soundId4))
+        assertTrue(pool.isLoaded(soundId5))
+        assertTrue(pool.isLoaded(soundId6))
+        assertTrue(pool.isLoaded(soundId7))
+        assertTrue(pool.isLoaded(soundId8))
+        assertTrue(pool.isLoaded(soundId9))
+        assertTrue(pool.isLoaded(soundId10))
+        assertTrue(pool.isLoaded(soundId11))
+        assertTrue(pool.isLoaded(soundId12))
+        assertTrue(pool.isLoaded(soundId13))
+        assertTrue(pool.isLoaded(soundId14))
+        assertTrue(pool.isLoaded(soundId15))
+        assertTrue(pool.isLoaded(soundId16))
+        assertTrue(pool.isLoaded(soundId17))
+        assertTrue(pool.isLoaded(soundId18))
+        assertTrue(pool.isLoaded(soundId19))
+        assertTrue(pool.isLoaded(soundId20))
+
+        pool.play(soundId1, repeat = -1)
+        pool.play(soundId2, repeat = -1)
+        pool.play(soundId3, repeat = -1)
+        pool.play(soundId4, repeat = -1)
+        pool.play(soundId5, repeat = -1)
+        pool.play(soundId6, repeat = -1)
+        pool.play(soundId7, repeat = -1)
+        pool.play(soundId8, repeat = -1)
+        pool.play(soundId9, repeat = -1)
+        pool.play(soundId10, repeat = -1)
+        pool.play(soundId11, repeat = -1)
+        pool.play(soundId12, repeat = -1)
+        pool.play(soundId13, repeat = -1)
+        pool.play(soundId14, repeat = -1)
+        pool.play(soundId15, repeat = -1)
+        pool.play(soundId16, repeat = -1)
+        pool.play(soundId17, repeat = -1)
+        pool.play(soundId18, repeat = -1)
+        pool.play(soundId19, repeat = -1)
+        pool.play(soundId20, repeat = -1)
+        Thread.sleep(500)
+
+        assertTrue(pool.isPlaying(soundId1))
+        assertTrue(pool.isPlaying(soundId2))
+        assertTrue(pool.isPlaying(soundId3))
+        assertTrue(pool.isPlaying(soundId4))
+        assertTrue(pool.isPlaying(soundId5))
+        assertTrue(pool.isPlaying(soundId6))
+        assertTrue(pool.isPlaying(soundId7))
+        assertTrue(pool.isPlaying(soundId8))
+        assertTrue(pool.isPlaying(soundId9))
+        assertTrue(pool.isPlaying(soundId10))
+        assertTrue(pool.isPlaying(soundId11))
+        assertTrue(pool.isPlaying(soundId12))
+        assertTrue(pool.isPlaying(soundId13))
+        assertTrue(pool.isPlaying(soundId14))
+        assertTrue(pool.isPlaying(soundId15))
+        assertTrue(pool.isPlaying(soundId16))
+        assertTrue(pool.isPlaying(soundId17))
+        assertTrue(pool.isPlaying(soundId18))
+        assertTrue(pool.isPlaying(soundId19))
+        assertTrue(pool.isPlaying(soundId20))
+
+        Thread.sleep(2000)
+
+        pool.stop(soundId1)
+        pool.stop(soundId2)
+        pool.stop(soundId3)
+        pool.stop(soundId4)
+        pool.stop(soundId5)
+        pool.stop(soundId6)
+        pool.stop(soundId7)
+        pool.stop(soundId8)
+        pool.stop(soundId9)
+        pool.stop(soundId10)
+        pool.stop(soundId11)
+        pool.stop(soundId12)
+        pool.stop(soundId13)
+        pool.stop(soundId14)
+        pool.stop(soundId15)
+        pool.stop(soundId16)
+        pool.stop(soundId17)
+        pool.stop(soundId18)
+        pool.stop(soundId19)
+        pool.stop(soundId20)
     }
 
 //--------------------------------------------------------------------------------------------------
