@@ -683,7 +683,7 @@ class SoundPoolTest {
     }
 
     @Test
-    fun loadSound2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
+    fun load2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
         val pool = createSoundPool()
 
         val sound1Id: Int = pool.loadAndWait(R.raw.bg_sunrise_inhale)
@@ -729,18 +729,114 @@ class SoundPoolTest {
 //--------------------------------------------------------------------------------------------------
 
     @Test
-    fun loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
+    fun stream_loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
         val pool = createSoundPool()
 
-        val soundId: Int = pool.loadAndWait(R.raw.sec_tick_cricket)
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
         assertTrue(pool.isLoaded(soundId))
 
         pool.playAndWait(soundId, 0)
         assertTrue(pool.isPlaying(soundId))
 
-        Thread.sleep(1500)
+        Thread.sleep(300)
         assertFalse(pool.isPlaying(soundId))
         assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 0)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(300)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_waitTillTheEnd_trackIsStopped_playAgain() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.playAndWait(soundId, 0)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(300)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.play(soundId)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_setLoopToPlayTwice_sampleIsPlayedTwice() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setLoop(soundId, 1)
+        assertTrue(result)
+
+        Thread.sleep(300)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        Thread.sleep(300)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_setLoopToPlayForever_sampleIsPlayingForever() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setLoop(soundId, -1)
+        assertTrue(result)
+
+        Thread.sleep(300)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        Thread.sleep(8900)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
 
         pool.stop(soundId)
     }
@@ -880,7 +976,7 @@ class SoundPoolTest {
         sampleId: Int,
         loop: Int = 0
     ) {
-        this.play(sampleId, loop)
+        this.play(sampleId, repeat = loop)
         Thread.sleep(PLAY_TIMEOUT)
     }
 

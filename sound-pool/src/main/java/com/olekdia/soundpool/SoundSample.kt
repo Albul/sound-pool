@@ -417,14 +417,14 @@ class SoundSample(
      * Play is made asynchronously, so isPlaying will return true after some delay
      * @param leftVolume (range = 0.0 to 1.0)
      * @param rightVolume (range = 0.0 to 1.0)
-     * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @param repeat replay number of times (0 = play once, 1 play twice, -1 = play forever)
      * @return true if successfully started playing, false otherwise
      */
     @UiThread
     fun play(
         leftVolume: Float,
         rightVolume: Float,
-        loop: Int,
+        repeat: Int,
         rate: Float,
         threadPool: ThreadPoolExecutor
     ): Boolean =
@@ -434,7 +434,7 @@ class SoundSample(
             } else {
                 setVolume(leftVolume, rightVolume)
                 setRate(rate)
-                setLoop(loop)
+                setLoop(repeat)
 
                 track.play()
                     .also { playState = PlayState.PLAYING }
@@ -591,18 +591,18 @@ class SoundSample(
         }
 
     /**
-     * @param loop repeat number of times (0 = play once, 1 play twice, -1 = play forever)
+     * @param repeat repeat number of times (0 = play once, 1 play twice, -1 = play forever)
      * @return error code or success, see [SUCCESS], [ERROR_INVALID_OPERATION],
      * [ERROR_BAD_VALUE]
      */
     @UiThread
-    fun setLoop(loop: Int): Int =
+    fun setLoop(repeat: Int): Int =
         when {
-            loop < -1 -> ERROR_BAD_VALUE
+            repeat < -1 -> ERROR_BAD_VALUE
             audioTrack == null -> ERROR_INVALID_OPERATION
 
             else -> {
-                toPlayCount = if (loop == -1) Int.MAX_VALUE else 1 + loop
+                toPlayCount = if (repeat == -1) Int.MAX_VALUE else 1 + repeat
                 SUCCESS
             }
         }
@@ -618,8 +618,6 @@ class SoundSample(
                     while (toPlayCount > 0) {
                         if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
 
-                        //if (track.playState != PLAYSTATE_PLAYING) track.play() // todo play right in method
-
                         audioBuffer?.let { buffer ->
                             if (isFullyLoaded || pausedPlaybackInBytes == 0) {
                                 val offsetInBytes = pausedPlaybackInBytes
@@ -628,7 +626,7 @@ class SoundSample(
                             }
                         }
 
-                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return // todo
+                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
 
                         if (!isFullyLoaded) {
                             if (!isStatic) audioBuffer = null

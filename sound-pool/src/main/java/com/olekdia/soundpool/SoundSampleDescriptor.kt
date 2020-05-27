@@ -5,6 +5,7 @@ import android.content.res.AssetFileDescriptor
 import android.media.MediaExtractor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import com.olekdia.androidcommon.NO_RESOURCE
 import com.olekdia.androidcommon.extensions.getFileSize
 import com.olekdia.androidcommon.extensions.isFileDocUri
 import com.olekdia.androidcommon.extensions.isHttpPath
@@ -35,7 +36,7 @@ constructor(
 
     init {
         when {
-            metadata.path == null -> {
+            metadata.rawResId != NO_RESOURCE -> {
                 parcelDescr = null
                 assetDescr = context.resources.openRawResourceFd(metadata.rawResId)
                     .also {
@@ -44,6 +45,7 @@ constructor(
                         fileDescriptor = it.fileDescriptor
                     }
             }
+
             metadata.path.isFileDocUri -> {
                 val cr = context.contentResolver
                 val uri = Uri.parse(metadata.path)
@@ -68,7 +70,7 @@ constructor(
                 }
             }
 
-            else -> {
+            !metadata.path.isNullOrEmpty() -> {
                 assetDescr = null
 
                 val file = File(metadata.path)
@@ -76,8 +78,13 @@ constructor(
                     .also {
                         fileOffset = 0
                         fileSize = file.length()
-                        fileDescriptor = it!!.fileDescriptor
+                        fileDescriptor = it.fileDescriptor
                     }
+            }
+
+            else -> {
+                fileOffset = 0
+                fileSize = 0
             }
         }
     }
