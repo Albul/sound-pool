@@ -682,48 +682,6 @@ class SoundPoolTest {
         pool.stop(soundId)
     }
 
-    @Test
-    fun load2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
-        val pool = createSoundPool()
-
-        val sound1Id: Int = pool.loadAndWait(R.raw.bg_sunrise_inhale)
-        assertTrue(pool.isLoaded(sound1Id))
-
-        val sound2Id: Int = pool.loadAndWait(R.raw.bg_sea_retain)
-        assertTrue(pool.isLoaded(sound2Id))
-
-        pool.playAndWait(sound1Id, -1)
-        assertTrue(pool.isPlaying(sound1Id))
-
-        Thread.sleep(4000)
-        pool.pause(sound1Id)
-        assertTrue(pool.isPaused(sound1Id))
-        assertFalse(pool.isPlaying(sound1Id))
-        Thread.sleep(10)
-
-        pool.playAndWait(sound2Id, -1)
-        assertTrue(pool.isPlaying(sound2Id))
-        Thread.sleep(4000)
-        pool.stop(sound2Id)
-        assertTrue(pool.isStopped(sound2Id))
-        assertFalse(pool.isPlaying(sound2Id))
-        Thread.sleep(10)
-
-        pool.playAndWait(sound1Id, -1)
-        assertTrue(pool.isPlaying(sound1Id))
-        Thread.sleep(4000)
-        pool.pause(sound1Id)
-        assertTrue(pool.isPaused(sound1Id))
-        assertFalse(pool.isPlaying(sound1Id))
-        Thread.sleep(10)
-
-        pool.playAndWait(sound2Id, -1)
-        assertTrue(pool.isPlaying(sound2Id))
-
-        pool.stop(sound1Id)
-        pool.stop(sound2Id)
-    }
-
 //--------------------------------------------------------------------------------------------------
 //  Non loop sounds
 //--------------------------------------------------------------------------------------------------
@@ -957,6 +915,138 @@ class SoundPoolTest {
 
         assertFalse(pool.isPlaying(otherSoundId))
         assertFalse(pool.isPlaying())
+    }
+
+//--------------------------------------------------------------------------------------------------
+//  Complex case
+//--------------------------------------------------------------------------------------------------
+
+    @Test
+    fun load2xSounds_playLoop1_pause_playLoop2_stop_playLoop1_pause_playLoop2() {
+        val pool = createSoundPool()
+
+        val sound1Id: Int = pool.loadAndWait(R.raw.bg_sunrise_inhale)
+        assertTrue(pool.isLoaded(sound1Id))
+
+        val sound2Id: Int = pool.loadAndWait(R.raw.bg_sea_retain)
+        assertTrue(pool.isLoaded(sound2Id))
+
+        pool.playAndWait(sound1Id, -1)
+        assertTrue(pool.isPlaying(sound1Id))
+
+        Thread.sleep(4000)
+        pool.pause(sound1Id)
+        assertTrue(pool.isPaused(sound1Id))
+        assertFalse(pool.isPlaying(sound1Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound2Id, -1)
+        assertTrue(pool.isPlaying(sound2Id))
+        Thread.sleep(4000)
+        pool.stop(sound2Id)
+        assertTrue(pool.isStopped(sound2Id))
+        assertFalse(pool.isPlaying(sound2Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound1Id, -1)
+        assertTrue(pool.isPlaying(sound1Id))
+        Thread.sleep(4000)
+        pool.pause(sound1Id)
+        assertTrue(pool.isPaused(sound1Id))
+        assertFalse(pool.isPlaying(sound1Id))
+        Thread.sleep(10)
+
+        pool.playAndWait(sound2Id, -1)
+        assertTrue(pool.isPlaying(sound2Id))
+
+        pool.stop(sound1Id)
+        pool.stop(sound2Id)
+    }
+
+    @Test
+    fun play2Loops_play3ShortSounds() {
+        val pool = createSoundPool()
+
+        val loopId1: Int = pool.loadAndWait(R.raw.dyathon_hope)
+        assertTrue(pool.isLoaded(loopId1))
+
+        val loopId2: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(loopId2))
+
+        val shortId1: Int = pool.load(R.raw.sec_tick_cricket)
+        val shortId2: Int = pool.load(R.raw.sec_tick_bird_ouzel)
+        val shortId3: Int = pool.load(R.raw.phase_tick_bumblebee)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(shortId1))
+        assertTrue(pool.isLoaded(shortId2))
+        assertTrue(pool.isLoaded(shortId3))
+
+        pool.playAndWait(loopId1, -1)
+        pool.playAndWait(loopId2, -1)
+        pool.play(shortId1)
+        pool.play(shortId2)
+        pool.play(shortId3)
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+        assertTrue(pool.isPlaying(shortId1))
+        assertTrue(pool.isPlaying(shortId2))
+        assertTrue(pool.isPlaying(shortId3))
+
+        Thread.sleep(2000)
+
+        assertFalse(pool.isPlaying(shortId1))
+        assertFalse(pool.isPlaying(shortId2))
+        assertFalse(pool.isPlaying(shortId3))
+        assertTrue(pool.isStopped(shortId1))
+        assertTrue(pool.isStopped(shortId2))
+        assertTrue(pool.isStopped(shortId3))
+
+        pool.stop(loopId1)
+        pool.stop(loopId2)
+    }
+
+    @Test
+    fun play2Loops_playOnce2Sounds() {
+        val pool = createSoundPool()
+
+        val loopId1: Int = pool.loadAndWait(R.raw.dyathon_hope)
+        assertTrue(pool.isLoaded(loopId1))
+
+        val loopId2: Int = pool.loadAndWait(R.raw.bg_wind_retain)
+        assertTrue(pool.isLoaded(loopId2))
+
+        pool.playAndWait(loopId1, -1)
+        pool.playAndWait(loopId2, -1)
+
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+
+        val shortId1 = pool.playOnce(R.raw.sec_tick_cricket)
+        assertNotEquals(INVALID, shortId1)
+        Thread.sleep(100)
+        assertTrue(pool.isPlaying(shortId1))
+
+        val shortId2 = pool.playOnce(R.raw.sec_tick_bird_ouzel)
+        assertNotEquals(INVALID, shortId2)
+        Thread.sleep(100)
+        assertTrue(pool.isPlaying(shortId2))
+
+        Thread.sleep(1000)
+        assertFalse(pool.isPlaying(shortId1))
+        assertFalse(pool.isPlaying(shortId2))
+        assertTrue(pool.isPlaying(loopId1))
+        assertTrue(pool.isPlaying(loopId2))
+
+        assertFalse(pool.isLoaded(shortId1))
+        assertFalse(pool.isLoaded(shortId2))
+
+        pool.stop(loopId1)
+        pool.stop(loopId2)
     }
 
 //--------------------------------------------------------------------------------------------------
