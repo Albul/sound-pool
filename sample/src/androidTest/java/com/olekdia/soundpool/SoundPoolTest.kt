@@ -11,6 +11,7 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
+const val STREAM_SMALL_BUFFER: Int = 1000
 const val LOAD_LONG_TIMEOUT: Long = 400L
 const val LOAD_TIMEOUT: Long = 50L
 const val PLAY_TIMEOUT: Long = 50L
@@ -26,6 +27,41 @@ class SoundPoolTest {
 //--------------------------------------------------------------------------------------------------
 //  Load methods
 //--------------------------------------------------------------------------------------------------
+
+    @Test
+    fun loadSample_play_releaseSoundPool_nothingLoadedNorPlaying() {
+        val pool = createSoundPool()
+
+        val soundId1 = pool.load(R.raw.sec_tick_bird_ouzel, isStatic = true)
+        val soundId2 = pool.load(
+            R.raw.bg_sea_retain,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId1))
+        assertTrue(pool.isLoaded(soundId2))
+        pool.play(soundId1, repeat = -1)
+        pool.play(soundId2, repeat = 1)
+
+        Thread.sleep(PLAY_TIMEOUT)
+
+        assertTrue(pool.isPlaying(soundId1))
+        assertTrue(pool.isPlaying(soundId2))
+        assertTrue(pool.isPlaying())
+
+        Thread.sleep(500)
+        pool.release()
+
+        assertFalse(pool.isLoaded(soundId1))
+        assertFalse(pool.isLoaded(soundId2))
+        assertFalse(pool.isPlaying(soundId1))
+        assertFalse(pool.isPlaying(soundId2))
+        assertFalse(pool.isPlaying())
+
+        Thread.sleep(1000)
+    }
 
     @Test
     fun static_loadSample_oggFile_sampleIsLoadedAndStopped() {
@@ -72,7 +108,11 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        val soundId = pool.load(
+            R.raw.bg_sea_retain,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -100,7 +140,11 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load(R.raw.dyathon_hope, isStatic = false)
+        val soundId = pool.load(
+            R.raw.dyathon_hope,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -114,7 +158,11 @@ class SoundPoolTest {
     @Test
     fun stream_loadSample_unloadSample_sampleIsUnloaded() {
         val pool = createSoundPool()
-        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        val soundId = pool.load(
+            R.raw.bg_sea_retain,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(pool.isLoaded(soundId))
@@ -133,7 +181,11 @@ class SoundPoolTest {
     @Test
     fun stream_loadSample_unloadFewTimes_sampleIsUnloaded() {
         val pool = createSoundPool()
-        val soundId = pool.load(R.raw.bg_sea_retain, isStatic = false)
+        val soundId = pool.load(
+            R.raw.bg_sea_retain,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(pool.isLoaded(soundId))
@@ -169,7 +221,11 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load(R.raw.design_patterns_pdf, isStatic = false)
+        val soundId = pool.load(
+            R.raw.design_patterns_pdf,
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -235,7 +291,11 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load("https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg", isStatic = false)
+        val soundId = pool.load(
+            "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg",
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -274,7 +334,10 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load("https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg", isStatic = true)
+        val soundId = pool.load(
+            "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg",
+            isStatic = true
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -313,7 +376,11 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load("https://pranabreath.info/images/6/6b/Vajrasana_pos.png", isStatic = false)
+        val soundId = pool.load(
+            "https://pranabreath.info/images/6/6b/Vajrasana_pos.png",
+            isStatic = false,
+            bufferSize = STREAM_SMALL_BUFFER
+        )
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -345,7 +412,7 @@ class SoundPoolTest {
             }
         })
 
-        val soundId = pool.load("", isStatic = false)
+        val soundId = pool.load("", isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertFalse(onLoadCalled)
@@ -368,7 +435,7 @@ class SoundPoolTest {
                 success = isSuccess
             }
         })
-        val soundId = pool.load(null, isStatic = false)
+        val soundId = pool.load(null, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertFalse(onLoadCalled)
@@ -391,7 +458,7 @@ class SoundPoolTest {
                 success = isSuccess
             }
         })
-        val soundId = pool.load(NO_RESOURCE, isStatic = false)
+        val soundId = pool.load(NO_RESOURCE, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertFalse(onLoadCalled)
@@ -414,7 +481,7 @@ class SoundPoolTest {
                 success = isSuccess
             }
         })
-        val soundId = pool.load(-12345, isStatic = false)
+        val soundId = pool.load(-12345, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -440,7 +507,7 @@ class SoundPoolTest {
                 success = isSuccess
             }
         })
-        val soundId = pool.load(1234567890, isStatic = false)
+        val soundId = pool.load(1234567890, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(onLoadCalled)
@@ -690,7 +757,7 @@ class SoundPoolTest {
     fun stream_loadSound_playOneTime_waitTillTheEnd_trackIsStopped() {
         val pool = createSoundPool()
 
-        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false)
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
         Thread.sleep(LOAD_LONG_TIMEOUT)
 
         assertTrue(pool.isLoaded(soundId))
@@ -795,6 +862,120 @@ class SoundPoolTest {
         Thread.sleep(8900)
         assertTrue(pool.isPlaying(soundId))
         assertFalse(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_setRate2x_sampleIsPlayedTwiceFaster() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setRate(soundId, 2f)
+        assertTrue(result)
+
+        Thread.sleep(150)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun stream_loadSound_playOneTime_setRate2x_sampleIsPlayedTwiceFaster() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setRate(soundId, 2f)
+        assertTrue(result)
+
+        Thread.sleep(150)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun static_loadSound_playOneTime_setRate2xSlower_sampleIsPlayedTwiceSlower() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setRate(soundId, 0.5f)
+        assertTrue(result)
+
+        Thread.sleep(300)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun stream_loadSound_playOneTime_setRate2xSlower_sampleIsPlayedTwiceSlower() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result = pool.setRate(soundId, 0.5f)
+        assertTrue(result)
+
+        Thread.sleep(300)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        pool.stop(soundId)
+    }
+
+    @Test
+    fun stream_loadSound_playOneTime_setVolume_sampleIsPlayed() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.sec_tick_cricket, isStatic = false, bufferSize = STREAM_SMALL_BUFFER)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId, 0)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        val result1 = pool.setVolume(soundId, 0.5f)
+        assertTrue(result1)
+
+        val result2 = pool.setVolume(soundId, 0.8f, 0.8f)
+        assertTrue(result2)
+        assertTrue(pool.isPlaying(soundId))
+
+        Thread.sleep(300)
+        assertFalse(pool.isPlaying(soundId))
+        assertTrue(pool.isStopped(soundId))
 
         pool.stop(soundId)
     }
