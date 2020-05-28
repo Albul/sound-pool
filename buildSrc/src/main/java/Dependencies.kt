@@ -1,5 +1,5 @@
 object Versions {
-    const val kotlin = "1.3.71"
+    const val kotlin = "1.3.72"
     const val mockk = "1.9.3"
     const val junit = "4.13"
     const val robolectric = "4.3.1"
@@ -32,7 +32,7 @@ object Versions {
         const val test_rules = "1.2.0"
     }
 
-    const val android_gradle = "3.5.3"
+    const val android_gradle = "3.6.3"
     const val bintray_gradle = "1.8.4"
     const val github_dcendents_gradle = "2.1"
 }

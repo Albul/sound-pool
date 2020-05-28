@@ -50,3 +50,5 @@ dependencies {
     implementation(Libs.olekdia.sparse_array_jvm)
     implementation(Libs.androidx.annotations)
 }
+
+apply(from = "bintray.gradle")
