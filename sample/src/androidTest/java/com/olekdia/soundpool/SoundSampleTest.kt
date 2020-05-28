@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * R.raw.sec_tick_cricket - 260 ms
+ * R.raw.phase_tick_bumblebee - 1260 ms
  */
 @LargeTest
 class SoundSampleTest {
@@ -289,6 +290,7 @@ class SoundSampleTest {
         assertFalse(sample.isPaused)
         assertFalse(sample.isStopped)
         assertTrue(sample.isClosed)
+        Thread.sleep(100)
 
         // Load #2
         val metadata = SoundSampleMetadata(12, R.raw.bg_wind_retain, null)
@@ -303,9 +305,9 @@ class SoundSampleTest {
         assertFalse(sample.isClosed)
 
         sample.play(1f, 1f, 1, 1f, playThreadPool)
-        Thread.sleep(100)
+        Thread.sleep(300)
 
-        assertTrue(sample.isPlaying)
+        assertTrue(sample.isPlaying) // todo
         assertFalse(sample.isPaused)
         assertFalse(sample.isStopped)
 
@@ -535,7 +537,7 @@ class SoundSampleTest {
         sample.play(1f, 1f, 1, 1f, playThreadPool)
         Thread.sleep(PLAY_TIMEOUT)
         assertTrue(sample.isPlaying)
-        Thread.sleep(300)
+        Thread.sleep(100)
 
         assertTrue(sample.isPlaying)
         Thread.sleep(300)
@@ -779,7 +781,7 @@ class SoundSampleTest {
 
         val pauseResult = sample.pause()
         assertTrue(pauseResult)
-        assertFalse(sample.isPlaying)
+        assertFalse(sample.isPlaying) // todo
         assertTrue(sample.isPaused)
 
         val resumeResult = sample.resume(playThreadPool)
@@ -874,7 +876,7 @@ class SoundSampleTest {
 
         val pauseResult = sample.pause()
         assertTrue(pauseResult)
-        assertFalse(sample.isPlaying)
+        assertFalse(sample.isPlaying) // todo
         assertTrue(sample.isPaused)
 
         val stopResult = sample.stop()
@@ -1072,10 +1074,10 @@ class SoundSampleTest {
         assertTrue(sample.isPlaying)
         val result = sample.setLoop(1)
         assertEquals(AudioTrack.SUCCESS, result)
-        Thread.sleep(200)
+        Thread.sleep(150)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(150)
+        Thread.sleep(100)
         assertTrue(sample.isPlaying)
         Thread.sleep(200)
 
@@ -1107,7 +1109,7 @@ class SoundSampleTest {
 
     @Test
     fun stream_play_setRate_sampleIsPlayingTwiceFast() {
-        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
+        val sample = createSampleAndLoad(R.raw.phase_tick_bumblebee, isStatic = false)
 
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded)
@@ -1117,10 +1119,10 @@ class SoundSampleTest {
         assertTrue(sample.isPlaying)
         val result = sample.setRate(2f)
         assertEquals(AudioTrack.SUCCESS, result)
-        Thread.sleep(PLAY_TIMEOUT)
+        Thread.sleep(200)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(100)
+        Thread.sleep(400)
         assertFalse(sample.isPlaying)
         assertFalse(sample.isPaused)
         assertTrue(sample.isStopped)
@@ -1140,10 +1142,8 @@ class SoundSampleTest {
         assertEquals(AudioTrack.ERROR_BAD_VALUE, result1)
         val result2 = sample.setRate(2220f)
         assertEquals(AudioTrack.ERROR_BAD_VALUE, result2)
-        Thread.sleep(PLAY_TIMEOUT)
+        Thread.sleep(60)
 
-        assertTrue(sample.isPlaying)
-        Thread.sleep(100)
         assertTrue(sample.isPlaying)
 
         sample.stop()
@@ -1196,8 +1196,6 @@ class SoundSampleTest {
         assertEquals(AudioTrack.SUCCESS, result)
         Thread.sleep(PLAY_TIMEOUT)
 
-        assertTrue(sample.isPlaying)
-        Thread.sleep(80)
         assertTrue(sample.isPlaying)
 
         sample.stop()
