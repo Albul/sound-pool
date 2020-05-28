@@ -24,7 +24,7 @@ class SoundSample(
 ) : Closeable {
     private val bufferMaxSize: Int = if (isStatic) bufferMaxSizeProposed * 2 else bufferMaxSizeProposed
     private val playRun = PlayRunnable()
-    private val codecLock = Any()
+    private val codecLock = Object()
     private var audioTrack: AudioTrack? = null // Null if initial data not loaded yet
 
     private var audioBuffer: ByteArray? = null
@@ -237,8 +237,8 @@ class SoundSample(
                                 val chunk = ByteArray(bufInfo.size)
                                 outputBuffer.get(chunk)
 
-                                audioTrack.let { track ->
-                                    if (track?.playState == PLAYSTATE_PLAYING) {
+                                audioTrack?.let { track ->
+                                    if (playState == PlayState.PLAYING) {
                                         track.write(chunk, 0, chunk.size)
                                         if (isStatic) {
                                             checkBufferSize(chunk.size)
@@ -285,13 +285,13 @@ class SoundSample(
             } else {
                 audioTrack?.let { track ->
                     if (!isFromStart
-                        && track.playState != PLAYSTATE_PAUSED
+                        && playState != PlayState.PAUSED
                     ) {
                         if (isStatic) {
                             // For static track, here track is not stopped and paused,
                             // that means that track is playing but hit EOF,
                             // so we should mark it as FullyLoaded and releaseCoded, we no longer need it
-                            if (track.playState != PLAYSTATE_STOPPED) {
+                            if (playState != PlayState.STOPPED) {
                                 isFullyLoaded = true
                                 releaseCodec()
                             }
@@ -434,15 +434,16 @@ class SoundSample(
         threadPool: ThreadPoolExecutor
     ): Boolean =
         audioTrack?.let { track ->
-            if (isPlaying) {
+            if (playState == PlayState.PLAYING) {
                 false
             } else {
                 setVolume(leftVolume, rightVolume)
                 setRate(rate)
                 setLoop(repeat)
 
+                playState = PlayState.PLAYING
                 track.play()
-                    .also { playState = PlayState.PLAYING }
+
                 threadPool.execute(playRun)
                 true
             }
@@ -461,14 +462,15 @@ class SoundSample(
         rate: Float
     ): Boolean =
         audioTrack?.let { track ->
-            if (isPlaying) {
+            if (playState == PlayState.PLAYING) {
                 false
             } else {
                 setVolume(leftVolume, rightVolume)
                 setRate(rate)
 
+                playState = PlayState.PLAYING
                 track.play()
-                    .also { playState = PlayState.PLAYING }
+
                 playRun.run()
                 true
             }
@@ -477,21 +479,34 @@ class SoundSample(
     @UiThread
     fun stop(): Boolean =
         audioTrack?.let { track ->
-            if (!isStopped) {
+            if (playState == PlayState.PLAYING
+                || playState == PlayState.PAUSED
+            ) {
                 when (playState) {
-                    PlayState.PLAYING ->
+                    PlayState.PLAYING -> {
+                        playState = PlayState.PAUSED
                         track.pause()
-                            .also { playState = PlayState.PAUSED }
+
+                        stopCodecAndSeek0()
+                    }
 
                     // If track was already paused we need seekTo(0),
                     // as it would not be called in loadNextSamples
                     PlayState.PAUSED ->
                         stopCodecAndSeek0()
                 }
-                pausedPlaybackInBytes = 0
-                track.flush()
-                track.stop()
-                    .also { playState = PlayState.STOPPED }
+
+                synchronized(codecLock) {
+                    if (playState == PlayState.PLAYING
+                        || playState == PlayState.PAUSED
+                    ) {
+                        pausedPlaybackInBytes = 0
+                        track.flush()
+
+                        playState = PlayState.STOPPED
+                        track.stop()
+                    }
+                }
                 true
             } else {
                 false
@@ -505,20 +520,25 @@ class SoundSample(
     @UiThread
     fun pause(): Boolean =
         audioTrack?.let { track ->
-            if (isPlaying) {
+            if (playState == PlayState.PLAYING) {
+                playState = PlayState.PAUSED
                 track.pause()
-                    .also { playState = PlayState.PAUSED }
 
-                track.playbackHeadPosition.let { playbackInFrames ->
-                    pausedPlaybackInBytes = if (playbackInFrames > 0) {
-                        playbackInFrames * frameSizeInBytes
-                    } else {
-                        0
+                synchronized(codecLock) {
+                    if (playState == PlayState.PAUSED) {
+                        track.playbackHeadPosition.let { playbackInFrames ->
+                            pausedPlaybackInBytes = if (playbackInFrames > 0) {
+                                playbackInFrames * frameSizeInBytes
+                            } else {
+                                0
+                            }
+                        }
+
+                        // Skip written bytes, so next resume will be in sync with pausedPlaybackInBytes
+                        if (audioBuffer != null) {
+                            track.flush()
+                        }
                     }
-                }
-                // Skip written bytes, so next resume will be in sync with pausedPlaybackInBytes
-                if (audioBuffer != null) {
-                    track.flush()
                 }
                 true
             } else {
@@ -534,9 +554,9 @@ class SoundSample(
     @UiThread
     fun resume(threadPool: ThreadPoolExecutor): Boolean =
         audioTrack?.let { track ->
-            if (isPaused) {
+            if (playState == PlayState.PAUSED) {
+                playState = PlayState.PLAYING
                 track.play()
-                    .also { playState = PlayState.PLAYING }
 
                 threadPool.execute(playRun)
                 true
@@ -621,7 +641,7 @@ class SoundSample(
             synchronized(codecLock) {
                 audioTrack?.let { track ->
                     while (toPlayCount > 0) {
-                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || playState != PlayState.PLAYING) return@let
 
                         audioBuffer?.let { buffer ->
                             if (isFullyLoaded || pausedPlaybackInBytes == 0) {
@@ -631,21 +651,22 @@ class SoundSample(
                             }
                         }
 
-                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || playState != PlayState.PLAYING) return@let
 
                         if (!isFullyLoaded) {
                             if (!isStatic) audioBuffer = null
                             loadNextSamples(false)
                         }
 
-                        if (_isClosed || track.playState != PLAYSTATE_PLAYING) return
+                        if (_isClosed || playState != PlayState.PLAYING) return@let
                         toPlayCount--
                     }
 
+                    playState = PlayState.STOPPED
                     track.stop()
-                        .also { playState = PlayState.STOPPED }
                     pausedPlaybackInBytes = 0
                 }
+                codecLock.notifyAll()
             }
         }
     }
