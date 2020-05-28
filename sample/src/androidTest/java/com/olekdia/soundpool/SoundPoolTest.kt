@@ -894,6 +894,29 @@ class SoundPoolTest {
         pool.stop(soundId)
     }
 
+    @Test
+    fun static_playThenUnload_sampleIsNotPlayingAndUnloaded() {
+        val pool = createSoundPool()
+
+        val soundId: Int = pool.load(R.raw.phase_tick_bumblebee, isStatic = true)
+        Thread.sleep(LOAD_LONG_TIMEOUT)
+        assertTrue(pool.isLoaded(soundId))
+
+        pool.play(soundId)
+        Thread.sleep(PLAY_TIMEOUT)
+        assertTrue(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+
+        val unloadResult = pool.unload(soundId)
+        assertTrue(unloadResult)
+
+        assertFalse(pool.isLoaded(soundId))
+        assertFalse(pool.isPlaying(soundId))
+        assertFalse(pool.isPaused(soundId))
+        assertFalse(pool.isStopped(soundId))
+    }
+
 //--------------------------------------------------------------------------------------------------
 //  Loop sounds
 //--------------------------------------------------------------------------------------------------
