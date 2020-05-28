@@ -338,7 +338,7 @@ class SoundPoolTest {
             "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg",
             isStatic = true
         )
-        Thread.sleep(1000L)
+        Thread.sleep(2000L)
 
         assertTrue(onLoadCalled)
         assertTrue(success)
@@ -381,7 +381,7 @@ class SoundPoolTest {
             isStatic = false,
             bufferSize = STREAM_SMALL_BUFFER
         )
-        Thread.sleep(1000L)
+        Thread.sleep(2000L)
 
         assertTrue(onLoadCalled)
         assertFalse(success)

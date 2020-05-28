@@ -305,11 +305,13 @@ class SoundSampleTest {
         assertFalse(sample.isClosed)
 
         sample.play(1f, 1f, 1, 1f, playThreadPool)
-        Thread.sleep(300)
+        Thread.sleep(100)
 
-        assertTrue(sample.isPlaying) // todo
+        assertTrue(sample.isPlaying)
         assertFalse(sample.isPaused)
         assertFalse(sample.isStopped)
+
+        Thread.sleep(1000)
 
         sample.stop()
     }
@@ -540,7 +542,7 @@ class SoundSampleTest {
         Thread.sleep(100)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(300)
+        Thread.sleep(400)
 
         assertFalse(sample.isPlaying)
         assertFalse(sample.isPaused)
@@ -781,7 +783,7 @@ class SoundSampleTest {
 
         val pauseResult = sample.pause()
         assertTrue(pauseResult)
-        assertFalse(sample.isPlaying) // todo
+        assertFalse(sample.isPlaying)
         assertTrue(sample.isPaused)
 
         val resumeResult = sample.resume(playThreadPool)
@@ -799,7 +801,7 @@ class SoundSampleTest {
 
     @Test
     fun static_playThenPauseThenResumeThenResume_sampleIsPlaying() {
-        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = true)
+        val sample = createSampleAndLoad(R.raw.phase_tick_bumblebee, isStatic = true)
 
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded)
@@ -876,7 +878,7 @@ class SoundSampleTest {
 
         val pauseResult = sample.pause()
         assertTrue(pauseResult)
-        assertFalse(sample.isPlaying) // todo
+        assertFalse(sample.isPlaying)
         assertTrue(sample.isPaused)
 
         val stopResult = sample.stop()
@@ -1079,7 +1081,7 @@ class SoundSampleTest {
         assertTrue(sample.isPlaying)
         Thread.sleep(100)
         assertTrue(sample.isPlaying)
-        Thread.sleep(200)
+        Thread.sleep(400)
 
         assertFalse(sample.isPlaying)
         assertFalse(sample.isPaused)
@@ -1108,7 +1110,7 @@ class SoundSampleTest {
     }
 
     @Test
-    fun stream_play_setRate_sampleIsPlayingTwiceFast() {
+    fun stream_play_setRate_sampleIsPlayingFaster() {
         val sample = createSampleAndLoad(R.raw.phase_tick_bumblebee, isStatic = false)
 
         assertFalse(sample.isClosed)
@@ -1122,7 +1124,7 @@ class SoundSampleTest {
         Thread.sleep(200)
 
         assertTrue(sample.isPlaying)
-        Thread.sleep(400)
+        Thread.sleep(600)
         assertFalse(sample.isPlaying)
         assertFalse(sample.isPaused)
         assertTrue(sample.isStopped)
@@ -1130,7 +1132,7 @@ class SoundSampleTest {
 
     @Test
     fun stream_play_setRateBadValue_invalidReturn() {
-        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = false)
+        val sample = createSampleAndLoad(R.raw.phase_tick_bumblebee, isStatic = false)
 
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded)
@@ -1203,7 +1205,7 @@ class SoundSampleTest {
 
     @Test
     fun static_play_setVolumeFewTimes_sampleIsPlaying_successReturned() {
-        val sample = createSampleAndLoad(R.raw.sec_tick_cricket, isStatic = true)
+        val sample = createSampleAndLoad(R.raw.phase_tick_bumblebee, isStatic = true)
 
         assertFalse(sample.isClosed)
         assertTrue(sample.isLoaded)

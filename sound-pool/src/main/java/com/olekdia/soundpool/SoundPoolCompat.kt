@@ -225,7 +225,8 @@ class SoundPoolCompat(
      * All audio data will be loaded before playing.
      * When playback is done, all data will be released
      * @return return sampleId that can be used to stop this sample,
-     * but it is prohibited to use this id to play, pause, unload
+     * if you stop or pause sample, the sample will be released,
+     * so there is no way to resume or play again this sample by returned id
      */
     fun playOnce(
         resId: Int,
@@ -254,7 +255,8 @@ class SoundPoolCompat(
      * All audio data will be loaded before playing.
      * When playback is done, all data will be released
      * @return return sampleId that can be used to stop this sample,
-     * but it is prohibited to use this id to play, pause, unload
+     * if you stop or pause sample, the sample will be released,
+     * so there is no way to resume or play again this sample by returned id
      */
     fun playOnce(
         path: String?,

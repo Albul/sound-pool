@@ -116,6 +116,7 @@ class SoundSample(
             }
 
             createCodec()
+                .also { codecState = CodecState.UNINITIALIZED }
             if (codec == null
                 || mediaFormat == null
             ) {
@@ -184,7 +185,7 @@ class SoundSample(
             if (!startCodec()) return
 
             val bufInfo = MediaCodec.BufferInfo()
-            var waitTimeout: Long = 1000 // microseconds to wait before get buffer
+            var waitTimeout: Long = 1000 // microseconds to wait before get buffer (1 ms)
             var sawInputEOS = false
             var sawOutputEOS = false
 
@@ -269,8 +270,8 @@ class SoundSample(
                             sawOutputEOS = true
                         }
                     } else {
-                        waitTimeout += 50
-                        if (waitTimeout > 50_000) {
+                        waitTimeout += 25
+                        if (waitTimeout > 25_000) {
                             throw IllegalStateException()
                         }
                     }
