@@ -6,9 +6,9 @@ object Versions {
     const val espresso = "3.2.0"
 
     object olekdia {
-        const val common = "0.1.7"
-        const val common_android = "3.2.10"
-        const val sparse_array = "0.2.4"
+        const val common = "0.4.1"
+        const val common_android = "3.3.1"
+        const val sparse_array = "0.2.5"
     }
 
     object sdk {
