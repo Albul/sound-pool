@@ -6,9 +6,9 @@ object Versions {
     const val espresso = "3.2.0"
 
     object olekdia {
-        const val common = "0.4.1"
-        const val common_android = "3.3.1"
-        const val sparse_array = "0.2.5"
+        const val common = "0.4.2"
+        const val common_android = "3.3.2"
+        const val sparse_array = "0.2.6"
     }
 
     object sdk {
@@ -25,7 +25,7 @@ object Versions {
         const val core_ktx = "1.2.0"
         const val appcompat = "1.1.0"
         const val material = "1.1.0"
-        const val fragment = "1.2.2"
+        const val fragment = "1.2.4"
 
         const val test_core = "1.2.0"
         const val test_runner = "1.2.0"
