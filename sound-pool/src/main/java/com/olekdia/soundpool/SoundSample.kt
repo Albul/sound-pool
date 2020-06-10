@@ -271,7 +271,7 @@ class SoundSample(
                         }
                     } else {
                         waitTimeout += 25
-                        if (waitTimeout > 25_000) {
+                        if (waitTimeout > 10_000) {
                             throw IllegalStateException()
                         }
                     }
