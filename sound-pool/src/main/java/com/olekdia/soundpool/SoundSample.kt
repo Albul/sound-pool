@@ -336,6 +336,9 @@ class SoundSample(
         } catch (e: IOException) {
             e.printStackTrace()
             null
+        }  catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            null
         }
     }
 
@@ -372,9 +375,15 @@ class SoundSample(
                     }
 
                     CodecState.CONFIGURED -> {
-                        it.start()
-                            .also { codecState = CodecState.EXECUTING }
-                        true
+                        try {
+                            it.start()
+                                .also { codecState = CodecState.EXECUTING }
+                            true
+                        } catch (e: IllegalStateException) {
+                            codecState = ERROR
+                            e.printStackTrace()
+                            false
+                        }
                     }
 
                     CodecState.EXECUTING -> true
