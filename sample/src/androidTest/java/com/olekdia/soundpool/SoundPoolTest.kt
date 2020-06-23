@@ -1632,6 +1632,41 @@ class SoundPoolTest {
     }
 
     @Test
+    fun playBowl_stop_play_stop_play_soundIsStoppedAfter() {
+        val pool = createSoundPool()
+
+        val short1: Int = pool.load(R.raw.phase_tick_bowl, isStatic = true)
+
+        Thread.sleep(1500)
+
+        pool.stop(short1)
+        pool.play(short1, 1f, 1f, 0, 1f)
+
+        Thread.sleep(3000)
+
+        pool.stop(short1)
+        pool.play(short1, 1f, 1f, 0, 1f)
+
+        Thread.sleep(7000)
+
+        assertFalse(pool.isPlaying(short1))
+        assertTrue(pool.isStopped(short1))
+
+        pool.stop(short1)
+        pool.play(short1, 1f, 1f, 0, 1f)
+        Thread.sleep(3000)
+
+
+        pool.stop(short1)
+        pool.play(short1, 1f, 1f, 0, 1f)
+
+        Thread.sleep(6000)
+
+        assertFalse(pool.isPlaying(short1))
+        assertTrue(pool.isStopped(short1))
+    }
+
+    @Test
     fun stream_stressTest_load20SoundsOneByOne_play_samplesIsLoadedAndPlayed() {
         val pool = SoundPoolCompat(context, 25, 80000)
 
