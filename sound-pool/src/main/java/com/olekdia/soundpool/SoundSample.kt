@@ -77,7 +77,7 @@ class SoundSample(
     fun load(descriptor: SoundSampleDescriptor): Boolean {
         _isClosed = false
         synchronized(codecLock) {
-            isStatic = isStatic && descriptor.fileSize < MAX_STATIC_SIZE
+            isStatic = isStatic && descriptor.fileSize < MAX_STATIC_FILE_SIZE
             audioBuffer = if (isStatic) {
                 ByteArray(descriptor.fileSize.toInt() * 12)
             } else {
@@ -682,7 +682,7 @@ class SoundSample(
     }
 
     companion object {
-        const val MAX_STATIC_SIZE = 150 * 1024 // 150 Kb
+        const val MAX_STATIC_FILE_SIZE = 200 * 1024 // 200 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
 
         // https://developer.android.com/reference/android/media/MediaCodec.html
