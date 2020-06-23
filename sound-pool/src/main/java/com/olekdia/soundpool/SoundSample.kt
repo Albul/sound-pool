@@ -682,7 +682,7 @@ class SoundSample(
     }
 
     companion object {
-        const val MAX_STATIC_SIZE = 140 * 1024 // 140 Kb
+        const val MAX_STATIC_SIZE = 150 * 1024 // 150 Kb
         const val SMALL_FILE_SIZE = 20 * 1024 // 20 Kb
 
         // https://developer.android.com/reference/android/media/MediaCodec.html
