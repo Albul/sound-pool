@@ -12,7 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 
 const val STREAM_SMALL_BUFFER: Int = 1000
-const val LOAD_LONG_TIMEOUT: Long = 400L
+const val LOAD_LONG_TIMEOUT: Long = 600L
 const val LOAD_TIMEOUT: Long = 50L
 const val PLAY_TIMEOUT: Long = 50L
 
@@ -296,7 +296,7 @@ class SoundPoolTest {
             isStatic = false,
             bufferSize = STREAM_SMALL_BUFFER
         )
-        Thread.sleep(1000L)
+        Thread.sleep(4000L)
 
         assertTrue(onLoadCalled)
         assertTrue(success)
@@ -338,7 +338,7 @@ class SoundPoolTest {
             "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg",
             isStatic = true
         )
-        Thread.sleep(2000L)
+        Thread.sleep(5000L)
 
         assertTrue(onLoadCalled)
         assertTrue(success)
@@ -381,7 +381,7 @@ class SoundPoolTest {
             isStatic = false,
             bufferSize = STREAM_SMALL_BUFFER
         )
-        Thread.sleep(2000L)
+        Thread.sleep(4000L)
 
         assertTrue(onLoadCalled)
         assertFalse(success)
@@ -1345,7 +1345,7 @@ class SoundPoolTest {
         val pool = createSoundPool()
 
         val soundId = pool.playOnce("https://olekdia.com/a/prana_breath/soundfiles/sh_white_stork_0.ogg")
-        Thread.sleep(1000L)
+        Thread.sleep(5000L)
         assertTrue(pool.isLoaded(soundId))
         assertTrue(pool.isPlaying(soundId))
         assertTrue(pool.isPlaying())
@@ -1542,7 +1542,7 @@ class SoundPoolTest {
 
         val shortId1 = pool.playOnce(R.raw.sec_tick_cricket)
         assertNotEquals(INVALID, shortId1)
-        Thread.sleep(100)
+        Thread.sleep(200)
         assertTrue(pool.isPlaying(shortId1))
 
         val shortId2 = pool.playOnce(R.raw.sec_tick_bird_ouzel)
@@ -1572,7 +1572,7 @@ class SoundPoolTest {
         val shortId3: Int = pool.load(R.raw.phase_tick_bumblebee, isStatic = false)
         val shortId4: Int = pool.load(R.raw.voice_male_inhale, isStatic = true)
         val shortId5: Int = pool.load(R.raw.sec_tick_grasshopper, isStatic = true)
-        Thread.sleep(1500)
+        Thread.sleep(2000L)
 
         assertTrue(pool.isLoaded(loopId1))
         assertTrue(pool.isLoaded(loopId2))
@@ -1607,7 +1607,7 @@ class SoundPoolTest {
         assertTrue(pool.isPaused(loopId1))
         assertTrue(pool.isPaused(loopId2))
         assertTrue(pool.isPaused(shortId3))
-        assertTrue(pool.isPaused(shortId4)) // todo
+        assertTrue(pool.isPaused(shortId4))
         assertFalse(pool.isPaused(shortId5))
 
         pool.autoResume()
@@ -1881,7 +1881,7 @@ class SoundPoolTest {
         val soundId20: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
         assertNotEquals(INVALID, soundId20)
 
-        Thread.sleep(2500L)
+        Thread.sleep(6000L)
         assertTrue(pool.isLoaded(soundId1))
         assertTrue(pool.isLoaded(soundId2))
         assertTrue(pool.isLoaded(soundId3))
