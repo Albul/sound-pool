@@ -296,7 +296,7 @@ class SoundPoolTest {
             isStatic = false,
             bufferSize = STREAM_SMALL_BUFFER
         )
-        Thread.sleep(4000L)
+        Thread.sleep(6000L)
 
         assertTrue(onLoadCalled)
         assertTrue(success)
@@ -338,7 +338,7 @@ class SoundPoolTest {
             "https://olekdia.com/a/prana_breath/soundfiles/lp_white_stork_1.ogg",
             isStatic = true
         )
-        Thread.sleep(5000L)
+        Thread.sleep(6000L)
 
         assertTrue(onLoadCalled)
         assertTrue(success)
@@ -1547,7 +1547,7 @@ class SoundPoolTest {
 
         val shortId2 = pool.playOnce(R.raw.sec_tick_bird_ouzel)
         assertNotEquals(INVALID, shortId2)
-        Thread.sleep(100)
+        Thread.sleep(200)
         assertTrue(pool.isPlaying(shortId2))
 
         Thread.sleep(1000)
@@ -1572,7 +1572,7 @@ class SoundPoolTest {
         val shortId3: Int = pool.load(R.raw.phase_tick_bumblebee, isStatic = false)
         val shortId4: Int = pool.load(R.raw.voice_male_inhale, isStatic = true)
         val shortId5: Int = pool.load(R.raw.sec_tick_grasshopper, isStatic = true)
-        Thread.sleep(2000L)
+        Thread.sleep(3000L)
 
         assertTrue(pool.isLoaded(loopId1))
         assertTrue(pool.isLoaded(loopId2))
@@ -1881,7 +1881,7 @@ class SoundPoolTest {
         val soundId20: Int = pool.load(R.raw.sec_tick_cricket, isStatic = true)
         assertNotEquals(INVALID, soundId20)
 
-        Thread.sleep(6000L)
+        Thread.sleep(7000L)
         assertTrue(pool.isLoaded(soundId1))
         assertTrue(pool.isLoaded(soundId2))
         assertTrue(pool.isLoaded(soundId3))

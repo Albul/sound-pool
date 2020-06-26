@@ -497,7 +497,7 @@ class SoundSample(
                         playState = PlayState.PAUSED
                         track.pause()
 
-                        stopCodecAndSeek0()
+                        // stopCodecAndSeek0() if this uncommented - static track that not fully loaded would have glitches
                     }
 
                     // If track was already paused we need seekTo(0),
