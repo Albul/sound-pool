@@ -1,14 +1,14 @@
 object Versions {
-    const val kotlin = "1.3.72"
-    const val mockk = "1.9.3"
+    const val kotlin = "1.4.0"
+    const val mockk = "1.10.0"
     const val junit = "4.13"
     const val robolectric = "4.3.1"
     const val espresso = "3.2.0"
 
     object olekdia {
-        const val common = "0.4.2"
-        const val common_android = "3.3.2"
-        const val sparse_array = "0.2.6"
+        const val common = "0.5.23"
+        const val common_android = "3.5.8"
+        const val sparse_array = "0.5.1"
     }
 
     object sdk {
@@ -21,20 +21,18 @@ object Versions {
     object androidx {
         const val annotations = "1.1.0"
         const val collections = "1.1.0"
-        const val core = "1.2.0"
-        const val core_ktx = "1.2.0"
-        const val appcompat = "1.1.0"
-        const val material = "1.1.0"
-        const val fragment = "1.2.4"
+        const val core = "1.3.1"
+        const val core_ktx = "1.3.1"
+        const val appcompat = "1.2.0"
+        const val material = "1.2.0"
+        const val fragment = "1.2.5"
 
         const val test_core = "1.2.0"
         const val test_runner = "1.2.0"
         const val test_rules = "1.2.0"
     }
 
-    const val android_gradle = "3.6.3"
-    const val bintray_gradle = "1.8.4"
-    const val github_dcendents_gradle = "2.1"
+    const val android_gradle = "3.6.4"
 }
 
 
@@ -78,7 +76,5 @@ object Libs {
     object plugin {
         val kotlin_gradle = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
         val android_gradle = "com.android.tools.build:gradle:${Versions.android_gradle}"
-        val bintray_gradle = "com.jfrog.bintray.gradle:gradle-bintray-plugin:${Versions.bintray_gradle}"
-        val github_dcendents_gradle = "com.github.dcendents:android-maven-gradle-plugin:${Versions.github_dcendents_gradle}"
     }
 }

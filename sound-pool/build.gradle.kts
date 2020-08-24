@@ -44,6 +44,17 @@ tasks.withType<Javadoc>().all {
     enabled = false
 }
 
+tasks {
+    val sourcesJar by creating(Jar::class) {
+        archiveClassifier.set("sources")
+        from(sourceSets.get())
+    }
+
+    artifacts {
+        archives(sourcesJar)
+    }
+}
+
 dependencies {
     implementation(Libs.olekdia.common_jvm)
     implementation(Libs.olekdia.common_android)
@@ -51,4 +62,4 @@ dependencies {
     implementation(Libs.androidx.annotations)
 }
 
-apply(from = "bintray.gradle")
+apply(from = "maven.publish.gradle.kts")

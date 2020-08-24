@@ -7,8 +7,6 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.olekdia.androidcommon.NO_RESOURCE
 import com.olekdia.androidcommon.extensions.getFileSize
-import com.olekdia.androidcommon.extensions.isFileDocUri
-import com.olekdia.androidcommon.extensions.isHttpPath
 import com.olekdia.common.INVALID_L
 import java.io.Closeable
 import java.io.File
@@ -19,7 +17,7 @@ import java.net.URL
 class SoundSampleDescriptor @Throws(IOException::class)
 constructor(
     context: Context,
-    metadata: SoundSampleMetadata
+    private val metadata: SoundSampleMetadata
 ) : Closeable {
 
     /**
@@ -46,9 +44,9 @@ constructor(
                     }
             }
 
-            metadata.path.isFileDocUri -> {
+            metadata.path.isContentPath -> {
                 val cr = context.contentResolver
-                val uri = Uri.parse(metadata.path)
+                val uri = Uri.parse(metadata.path.fullPath)
 
                 parcelDescr = cr.openFileDescriptor(uri, "r")
                     .also {
@@ -59,9 +57,9 @@ constructor(
             }
 
             metadata.path.isHttpPath -> {
-                httpPath = metadata.path
+                httpPath = metadata.path.fullPath
                 fileOffset = 0
-                fileSize = URL(metadata.path).getFileSize().let {
+                fileSize = URL(httpPath).getFileSize().let {
                     if (it == INVALID_L) {
                         DEFAULT_BUFFER_SIZE.toLong()
                     } else {
@@ -70,10 +68,10 @@ constructor(
                 }
             }
 
-            !metadata.path.isNullOrEmpty() -> {
+            metadata.path.isFilePath -> {
                 assetDescr = null
 
-                val file = File(metadata.path)
+                val file = File(metadata.path.fullPath)
                 parcelDescr = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
                     .also {
                         fileOffset = 0
