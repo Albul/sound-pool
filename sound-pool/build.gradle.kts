@@ -47,7 +47,7 @@ tasks.withType<Javadoc>().all {
 tasks {
     val sourcesJar by creating(Jar::class) {
         archiveClassifier.set("sources")
-        from(sourceSets.get())
+        from(android.sourceSets.getByName("main").java.srcDirs)
     }
 
     artifacts {

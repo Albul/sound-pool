@@ -38,9 +38,7 @@ configure<PublishingExtension> {
             artifactId = artifactName
             version = libraryVersion
 
-            val sourcesJar by tasks.getting(Jar::class)
-//            val javadocJar by tasks.getting(Jar::class)
-            artifact(sourcesJar)
+            artifact(tasks.findByName("sourcesJar"))
             artifact("$buildDir/outputs/aar/${project.name}-release.aar")
 
             pom {
