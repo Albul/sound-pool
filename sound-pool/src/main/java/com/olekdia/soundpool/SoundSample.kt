@@ -49,7 +49,7 @@ class SoundSample(
     @CodecState
     @Volatile
     private var codecState: Int = CodecState.UNINITIALIZED
-    @CodecState
+    @PlayState
     @Volatile
     private var playState: Int = PlayState.UNINITIALIZED
     @Volatile
