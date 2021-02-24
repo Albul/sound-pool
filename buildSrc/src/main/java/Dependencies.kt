@@ -1,22 +1,22 @@
 object Versions {
-    const val kotlin = "1.4.20"
+    const val kotlin = "1.4.30"
     const val mockk = "1.10.0"
     const val junit = "4.13"
-    const val robolectric = "4.3.1"
+    const val robolectric = "4.5.1"
     const val espresso = "3.2.0"
 
     object olekdia {
-        const val common = "0.5.25"
-        const val common_android = "3.5.10"
-        const val sparse_array = "0.5.3"
+        const val common = "0.5.27"
+        const val common_android = "3.5.13"
+        const val sparse_array = "0.5.5"
     }
 
     object sdk {
         const val min = 16
-        const val target = 29
-        const val compile = 29
+        const val target = 30
+        const val compile = 30
     }
-    const val buildTools = "29.0.3"
+    const val buildTools = "30.0.3"
 
     object androidx {
         const val annotations = "1.1.0"
@@ -24,7 +24,7 @@ object Versions {
         const val core = "1.3.2"
         const val core_ktx = "1.3.2"
         const val appcompat = "1.2.0"
-        const val material = "1.2.1"
+        const val material = "1.3.0"
         const val fragment = "1.2.5"
 
         const val test_core = "1.2.0"
