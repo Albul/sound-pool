@@ -1,11 +1,10 @@
-import java.io.FileInputStream
 import java.util.*
 import org.gradle.api.publish.PublishingExtension
 
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("io.codearte.nexus-staging") version "0.22.0"
+    id("io.codearte.nexus-staging") version "0.30.0"
     `maven-publish`
     signing
 }
@@ -13,33 +12,33 @@ plugins {
 val libraryVersion: String by project
 
 android {
-    compileSdkVersion(Versions.sdk.compile)
-    buildToolsVersion(Versions.buildTools)
+    compileSdk = Versions.sdk.compile
+    buildToolsVersion = Versions.buildTools
 
     defaultConfig {
-        minSdkVersion(Versions.sdk.min)
-        targetSdkVersion(Versions.sdk.target)
-        versionCode = 1
-        versionName = libraryVersion
+        minSdk = Versions.sdk.min
+        targetSdk = Versions.sdk.target
     }
     compileOptions {
         encoding = "UTF-8"
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    java {
-        sourceSets.getByName("main").java.srcDir("src/main/kotlin")
+    kotlin {
+        sourceSets["main"].apply {
+            kotlin.srcDir("src/main/kotlin")
+        }
     }
     packagingOptions {
-        exclude("META-INF/DEPENDENCIES")
-        exclude("META-INF/LICENSE")
-        exclude("META-INF/LICENSE.txt")
-        exclude("META-INF/license.txt")
-        exclude("META-INF/NOTICE")
-        exclude("META-INF/NOTICE.txt")
-        exclude("META-INF/notice.txt")
-        exclude("META-INF/ASL2.0")
-        exclude("META-INF/*.kotlin_module")
+        resources.excludes.add("META-INF/DEPENDENCIES")
+        resources.excludes.add("META-INF/LICENSE")
+        resources.excludes.add("META-INF/LICENSE.txt")
+        resources.excludes.add("META-INF/license.txt")
+        resources.excludes.add("META-INF/NOTICE")
+        resources.excludes.add("META-INF/NOTICE.txt")
+        resources.excludes.add("META-INF/notice.txt")
+        resources.excludes.add("META-INF/ASL2.0")
+        resources.excludes.add("META-INF/*.kotlin_module")
     }
 }
 
@@ -74,7 +73,7 @@ dependencies {
 //  Publishing
 //--------------------------------------------------------------------------------------------------
 
-val fis = FileInputStream("local.properties")
+val fis = project.rootProject.file("local.properties").inputStream()
 val properties = Properties().apply {
     load(fis)
 }

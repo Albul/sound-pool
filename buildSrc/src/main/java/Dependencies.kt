@@ -1,14 +1,14 @@
 object Versions {
-    const val kotlin = "1.4.30"
+    const val kotlin = "1.5.31"
     const val mockk = "1.10.0"
     const val junit = "4.13"
     const val robolectric = "4.5.1"
     const val espresso = "3.2.0"
 
     object olekdia {
-        const val common = "0.5.27"
-        const val common_android = "3.5.13"
-        const val sparse_array = "0.5.5"
+        const val common = "0.6.0"
+        const val common_android = "3.7.0"
+        const val sparse_array = "0.6.0"
     }
 
     object sdk {
@@ -19,20 +19,17 @@ object Versions {
     const val buildTools = "30.0.3"
 
     object androidx {
-        const val annotations = "1.1.0"
-        const val collections = "1.1.0"
-        const val core = "1.3.2"
-        const val core_ktx = "1.3.2"
-        const val appcompat = "1.2.0"
-        const val material = "1.3.0"
-        const val fragment = "1.2.5"
+        const val annotations = "1.2.0"
+        const val appcompat = "1.3.1"
+        const val material = "1.4.0"
+        const val fragment = "1.3.6"
 
-        const val test_core = "1.2.0"
-        const val test_runner = "1.2.0"
-        const val test_rules = "1.2.0"
+        const val test_core = "1.4.0"
+        const val test_runner = "1.4.0"
+        const val test_rules = "1.4.0"
     }
 
-    const val android_gradle = "4.1.1"
+    const val android_gradle = "7.0.3"
 }
 
 
@@ -61,9 +58,7 @@ object Libs {
 
     object androidx {
         val annotations = "androidx.annotation:annotation:${Versions.androidx.annotations}"
-        val collections = "androidx.collection:collection:${Versions.androidx.collections}"
-        val core = "androidx.core:core:${Versions.androidx.core}"
-        val core_ktx = "androidx.core:core-ktx:${Versions.androidx.core_ktx}"
+
         val fragment = "androidx.fragment:fragment:${Versions.androidx.fragment}"
         val appcompat = "androidx.appcompat:appcompat:${Versions.androidx.appcompat}"
         val material = "com.google.android.material:material:${Versions.androidx.material}"

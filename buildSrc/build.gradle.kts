@@ -6,7 +6,3 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
 }
-
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
-}
