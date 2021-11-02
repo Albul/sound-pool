@@ -7,7 +7,7 @@ object Versions {
 
     object olekdia {
         const val common = "0.6.0"
-        const val common_android = "3.7.0"
+        const val common_android = "3.7.1"
         const val sparse_array = "0.6.0"
     }
 
